@@ -1,0 +1,16 @@
+.gradle/
+**/build/
+**/run/
+.idea/
+*.iml
+.tools/
+.codex/
+.vscode/
+*.jks
+*.keystore
+*.pem
+*.key
+*.log
+.env
+.env.*
+!.env.example
