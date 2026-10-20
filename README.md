@@ -23,6 +23,11 @@
 сервере и клиенте с NEI пока не проверена: успешная сборка не заменяет эту проверку.
 Автоматическое управление игроком и построение проходимых маршрутов не реализованы.
 
+Добавлено [создание планов строительства для Schematica](docs/schematica.md):
+агент задаёт схемы с нуля, несколько планов видны одновременно, отдельный виджет Harness
+переключает их видимость явными callbacks. Есть экспорт `.schematic` и исходного JSON.
+Работа этой интеграции в игре пока не проверена.
+
 ## Архитектура
 
 `агент → core.jar (Java 21) → plugins/* → TCP loopback → Forge (Java 8) → серверный игровой поток`
@@ -55,6 +60,19 @@
 обрабатывается не более четырёх за тик с проверкой бюджета 5 мс между запросами.
 Это не жёсткий предел длительности одного запроса. Ожидание игрового потока — до 5 секунд.
 Просроченные задания пропускаются; завершение сервера закрывает соединения и очередь.
+
+### Каталоги модулей
+
+```text
+core/       bridge-protocol, mcp-api, mcp-server, game-bridge
+tools/      minecraft-tools, nei-tools, gregtech-tools, schematica-tools
+adapters/   forge-1.7.10, forge-nei-1.7.10, forge-gregtech-1.7.10,
+            forge-schematica-1.7.10, harness-schematica-1.7.10
+```
+
+Это группы каталогов; каждый модуль остаётся отдельным Gradle-проектом.
+Имена проектов и команды сохраняются: например, `:mcp-server:installDist`
+и `:forge-1.7.10:assemble`. Готовый набор по-прежнему находится в `build/bundle/`.
 
 ## Сборка
 
@@ -98,13 +116,13 @@ Gradle Wrapper 8.8 запускается на JDK 21, адаптер и про�
 - Готовый набор: `build/bundle/core.jar`, `build/bundle/plugins/minecraft-tools.jar`
   и серверный мод в `build/bundle/forge/`. Этот набор собирается также командой `gradlew.bat bundle`.
 - Самостоятельное ядро со всеми своими зависимостями:
-  `mcp-server/build/libs/minecraft-agent-tools-core-0.1.0-SNAPSHOT.jar`.
-- Отдельный провайдер: `minecraft-tools/build/libs/minecraft-tools-0.1.0-SNAPSHOT.jar`.
-- Мод: `forge-1.7.10/build/libs/minecraft-agent-tools-forge-1.7.10-0.1.0-SNAPSHOT.jar`.
-- MCP-дистрибутив: `mcp-server/build/install/mcp-server/`, включая `bin`, `lib` и `plugins`.
-- Отчёты тестов: `bridge-protocol/build/reports/tests/test/index.html`,
-  `minecraft-tools/build/reports/tests/test/index.html`,
-  `mcp-server/build/reports/tests/test/index.html`.
+  `core/mcp-server/build/libs/minecraft-agent-tools-core-0.1.0-SNAPSHOT.jar`.
+- Отдельный провайдер: `tools/minecraft-tools/build/libs/minecraft-tools-0.1.0-SNAPSHOT.jar`.
+- Мод: `adapters/forge-1.7.10/build/libs/minecraft-agent-tools-forge-1.7.10-0.1.0-SNAPSHOT.jar`.
+- MCP-дистрибутив: `core/mcp-server/build/install/mcp-server/`, включая `bin`, `lib` и `plugins`.
+- Отчёты тестов: `core/bridge-protocol/build/reports/tests/test/index.html`,
+  `tools/minecraft-tools/build/reports/tests/test/index.html`,
+  `core/mcp-server/build/reports/tests/test/index.html`.
 
 ## Необязательные провайдеры
 
@@ -138,7 +156,7 @@ JAR провайдера кладётся в `plugins` внешнего MCP-пр
 `MAT_TOKEN` и `MAT_PORT` проверяются при вызове Minecraft-инструмента.
 
 Новый тип интеграции, например NEI, добавляется отдельным провайдером по интерфейсу
-[ToolProvider](mcp-api/src/main/java/dev/minecraftagenttools/api/ToolProvider.java).
+[ToolProvider](core/mcp-api/src/main/java/dev/minecraftagenttools/api/ToolProvider.java).
 JAR содержит файл `META-INF/services/dev.minecraftagenttools.api.ToolProvider`
 с полным именем класса, реализующего этот интерфейс и имеющего публичный конструктор без аргументов.
 Провайдер предоставляет ID, описания инструментов, их проверку и вызов; ядро менять не нужно.

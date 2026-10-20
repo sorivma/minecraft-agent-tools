@@ -6,6 +6,8 @@ evaluationDependsOn(":nei-tools")
 
 evaluationDependsOn(":gregtech-tools")
 
+evaluationDependsOn(":schematica-tools")
+
 java { toolchain { languageVersion.set(JavaLanguageVersion.of(21)) } }
 
 dependencies {
@@ -16,6 +18,7 @@ dependencies {
     testImplementation(project(":minecraft-tools"))
     testImplementation(project(":nei-tools"))
     testImplementation(project(":gregtech-tools"))
+    testImplementation(project(":schematica-tools"))
 }
 
 application { mainClass.set("dev.minecraftagenttools.mcp.Main") }
@@ -34,11 +37,29 @@ distributions.main {
         from(project(":minecraft-tools").tasks.named("jar")) { into("plugins") }
         from(project(":nei-tools").tasks.named("jar")) { into("plugins") }
         from(project(":gregtech-tools").tasks.named("jar")) { into("plugins") }
+        from(project(":schematica-tools").tasks.named("jar")) { into("plugins") }
     }
 }
 
 tasks.test {
-    dependsOn(tasks.jar, ":minecraft-tools:jar", ":nei-tools:jar", ":gregtech-tools:jar")
+    dependsOn(
+        tasks.jar,
+        ":minecraft-tools:jar",
+        ":nei-tools:jar",
+        ":gregtech-tools:jar",
+        ":schematica-tools:jar"
+    )
+    systemProperty(
+        "schematica.provider.jar",
+        project(":schematica-tools")
+            .tasks
+            .named<Jar>("jar")
+            .get()
+            .archiveFile
+            .get()
+            .asFile
+            .absolutePath
+    )
     systemProperty("core.jar", tasks.jar.get().archiveFile.get().asFile.absolutePath)
     systemProperty(
         "minecraft.provider.jar",

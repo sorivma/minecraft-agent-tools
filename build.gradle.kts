@@ -5,14 +5,19 @@ plugins {
 
 spotless {
     java {
-        target("*/src/**/*.java")
+        target("core/*/src/**/*.java", "tools/*/src/**/*.java", "adapters/*/src/**/*.java")
         googleJavaFormat("1.22.0").aosp()
         removeUnusedImports()
         trimTrailingWhitespace()
         endWithNewline()
     }
     kotlinGradle {
-        target("*.gradle.kts", "*/build.gradle.kts")
+        target(
+            "*.gradle.kts",
+            "core/*/build.gradle.kts",
+            "tools/*/build.gradle.kts",
+            "adapters/*/build.gradle.kts"
+        )
         ktfmt("0.50").kotlinlangStyle()
         trimTrailingWhitespace()
         endWithNewline()
@@ -45,7 +50,32 @@ val bundle by
             ":forge-nei-1.7.10:assemble"
         )
         dependsOn(":gregtech-tools:jar", ":forge-gregtech-1.7.10:assemble")
+        dependsOn(
+            ":schematica-tools:jar",
+            ":forge-schematica-1.7.10:assemble",
+            ":harness-schematica-1.7.10:assemble"
+        )
         into(layout.buildDirectory.dir("bundle"))
+        from(project(":schematica-tools").tasks.named("jar")) {
+            into("plugins")
+            rename { "schematica-tools.jar" }
+        }
+        from(
+            project(":forge-schematica-1.7.10")
+                .layout
+                .buildDirectory
+                .file("libs/minecraft-agent-tools-schematica-forge-1.7.10-${project.version}.jar")
+        ) {
+            into("client-mods")
+        }
+        from(
+            project(":harness-schematica-1.7.10")
+                .layout
+                .buildDirectory
+                .file("libs/minecraft-agent-tools-schematica-harness-1.7.10-${project.version}.jar")
+        ) {
+            into("harness-mods")
+        }
         from(
             project(":mcp-server")
                 .layout

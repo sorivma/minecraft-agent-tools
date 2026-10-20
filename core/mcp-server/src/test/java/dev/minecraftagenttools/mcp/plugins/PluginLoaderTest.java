@@ -134,6 +134,9 @@ public class PluginLoaderTest {
             assertNull(core.getEntry("dev/minecraftagenttools/minecraft/contract/Tools.class"));
             assertNull(core.getEntry("dev/minecraftagenttools/nei/contract/NeiTools.class"));
             assertNull(core.getEntry("dev/minecraftagenttools/gregtech/contract/GtTools.class"));
+            assertNull(
+                    core.getEntry(
+                            "dev/minecraftagenttools/schematica/contract/SchematicaTools.class"));
             assertNull(core.getEntry("META-INF/services/" + ToolProvider.class.getName()));
             assertNotNull(core.getEntry("dev/minecraftagenttools/api/ToolProvider.class"));
             assertNotNull(core.getEntry("com/google/gson/Gson.class"));
@@ -229,6 +232,41 @@ public class PluginLoaderTest {
                                     request(
                                             "tools/call",
                                             "{\"name\":\"gt_status\",\"arguments\":{}}"))
+                            .getAsJsonObject("result")
+                            .get("isError")
+                            .getAsBoolean());
+        }
+        Files.delete(jar);
+        try (PluginLoader loader = new PluginLoader(plugins)) {
+            assertTrue(loader.registry().tools().isEmpty());
+        }
+    }
+
+    @Test
+    public void schematicaJarRegistersOnlyWhenInstalledAndUsesClientBridge() throws Exception {
+        Path plugins = temp.newFolder("schematica-only").toPath();
+        Path jar = plugins.resolve("schematica-tools.jar");
+        Files.copy(Paths.get(System.getProperty("schematica.provider.jar")), jar);
+        try (PluginLoader loader = new PluginLoader(plugins)) {
+            assertEquals(7, loader.registry().tools().size());
+            RpcServer server =
+                    new RpcServer(
+                            loader.registry(),
+                            (connection, tool, args) -> {
+                                assertEquals("schematica", connection);
+                                assertEquals("schematic_status", tool);
+                                return Collections.singletonMap("ok", true);
+                            });
+            server.handle(
+                    request(
+                            "initialize",
+                            "{\"protocolVersion\":\"2025-11-25\",\"capabilities\":{},\"clientInfo\":{}}"));
+            server.handle("{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}");
+            assertFalse(
+                    server.handle(
+                                    request(
+                                            "tools/call",
+                                            "{\"name\":\"schematic_status\",\"arguments\":{}}"))
                             .getAsJsonObject("result")
                             .get("isError")
                             .getAsBoolean());
