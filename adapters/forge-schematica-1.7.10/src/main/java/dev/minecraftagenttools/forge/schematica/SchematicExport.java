@@ -9,6 +9,15 @@ import net.minecraft.tileentity.TileEntity;
 
 /** Serializes only the generated schematic world, never live-world tile entities. */
 final class SchematicExport {
+    static byte legacyMetadata(int meta) {
+        if (meta < 0 || meta > 15)
+            throw new IllegalArgumentException(
+                    "Alpha .schematic cannot preserve extended metadata "
+                            + meta
+                            + "; use schematic_get to save the full layout JSON instead");
+        return (byte) meta;
+    }
+
     static byte[] bytes(Plans.Plan plan, SchematicaApi.Ghost ghost) throws IOException {
         NBTTagCompound root = new NBTTagCompound();
         root.setString("Materials", "Alpha");
@@ -30,7 +39,7 @@ final class SchematicExport {
             if (ghost.cells[i] >= 0) {
                 SchematicaApi.Resolved p = ghost.palette.get(ghost.cells[i]);
                 blocks[i] = ids.get(Block.blockRegistry.getNameForObject(p.block)).byteValue();
-                meta[i] = (byte) p.meta;
+                meta[i] = legacyMetadata(p.meta);
                 if (p.block.hasTileEntity(p.meta)) {
                     int x = i % plan.layout.width,
                             y = i / (plan.layout.width * plan.layout.length),

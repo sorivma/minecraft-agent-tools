@@ -6,7 +6,7 @@ import java.util.*;
 
 /** Owned by the client thread. Session changes revoke IDs, callbacks and all plans. */
 public final class Plans {
-    public static final int MAX_PLANS = 8, MAX_TOTAL_VOLUME = 131072;
+    public static final int MAX_PLANS = 32, MAX_TOTAL_VOLUME = 131072;
     private Object world;
     private int dimension;
     private String session;
@@ -57,12 +57,66 @@ public final class Plans {
     }
 
     public Plan put(String id, int revision, String name, Layout layout, int x, int y, int z) {
+        return put(id, revision, name, "", layout, x, y, z);
+    }
+
+    public Plan put(
+            String id,
+            int revision,
+            String name,
+            String group,
+            Layout layout,
+            int x,
+            int y,
+            int z) {
+        Plan old = id == null ? null : get(id);
+        return put(
+                id,
+                revision,
+                name,
+                group,
+                layout,
+                x,
+                y,
+                z,
+                old == null ? UUID.randomUUID().toString() : old.persistentId);
+    }
+
+    /** Stable card identity is separate from the session-scoped command ID. */
+    public Plan restore(
+            String persistentId, String name, String group, Layout layout, int x, int y, int z) {
+        requirePersistentId(persistentId);
+        for (Plan plan : plans.values())
+            if (plan.persistentId.equals(persistentId))
+                throw new IllegalArgumentException("Duplicate persistent plan ID");
+        return put(null, 0, name, group, layout, x, y, z, persistentId);
+    }
+
+    public static String requirePersistentId(String id) {
+        if (id == null
+                || !id.matches("[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}"))
+            throw new IllegalArgumentException("Invalid persistent plan ID");
+        return id;
+    }
+
+    private Plan put(
+            String id,
+            int revision,
+            String name,
+            String group,
+            Layout layout,
+            int x,
+            int y,
+            int z,
+            String persistentId) {
         checkPut(id, revision, layout);
         Plan p =
                 new Plan(
                         id == null ? UUID.randomUUID().toString() : id,
+                        persistentId,
                         revision + 1,
                         name,
+                        PlanPresentation.group(group),
                         layout,
                         x,
                         y,
@@ -79,16 +133,29 @@ public final class Plans {
     }
 
     public static final class Plan {
-        public final String id, name;
+        public final String id, persistentId, name, group;
+        public final List<Map<String, Object>> materials;
         public final int revision;
         public final Layout layout;
         public int x, y, z, layer = -1;
         public boolean visible = true;
 
-        Plan(String id, int revision, String name, Layout layout, int x, int y, int z) {
+        Plan(
+                String id,
+                String persistentId,
+                int revision,
+                String name,
+                String group,
+                Layout layout,
+                int x,
+                int y,
+                int z) {
             this.id = id;
+            this.persistentId = persistentId;
             this.revision = revision;
             this.name = name;
+            this.group = group;
+            this.materials = PlanPresentation.materials(layout);
             this.layout = layout;
             this.x = x;
             this.y = y;
@@ -99,10 +166,16 @@ public final class Plans {
             return map(
                     "planId",
                     id,
+                    "persistentId",
+                    persistentId,
                     "revision",
                     revision,
                     "name",
                     name,
+                    "group",
+                    group,
+                    "materials",
+                    materials,
                     "x",
                     x,
                     "y",

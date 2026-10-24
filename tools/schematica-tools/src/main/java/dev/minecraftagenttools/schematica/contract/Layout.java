@@ -7,6 +7,7 @@ import java.util.*;
 /** Bounded detached authoring format. Boxes are inclusive, later boxes overwrite earlier ones. */
 public final class Layout {
     public static final int MAX_VOLUME = 65536;
+    public static final int MAX_META = 65535;
     public final int width, height, length;
     public final List<Map<String, Object>> palette, boxes;
 
@@ -22,7 +23,7 @@ public final class Layout {
             String block = text(p, "block", 256);
             if (!block.matches("[a-zA-Z0-9_.-]+:[a-zA-Z0-9_./-]+"))
                 throw new IllegalArgumentException("Use a registry block name");
-            if (p.containsKey("meta")) requiredInt(p, "meta", 0, 15);
+            if (p.containsKey("meta")) requiredInt(p, "meta", 0, MAX_META);
             if (p.containsKey("label")) text(p, "label", 128);
             if (p.containsKey("tileNbt")) text(p, "tileNbt", 8192);
             if (p.containsKey("connections")) {

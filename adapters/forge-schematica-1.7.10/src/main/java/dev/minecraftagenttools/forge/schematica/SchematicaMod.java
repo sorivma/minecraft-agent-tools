@@ -22,6 +22,7 @@ public final class SchematicaMod {
     private int port;
     private String token;
     private GameBridge bridge;
+    private PlanStore store;
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -57,20 +58,49 @@ public final class SchematicaMod {
         } catch (ReflectiveOperationException | LinkageError e) {
             error = e.toString();
         }
+        store =
+                new PlanStore(
+                        Minecraft.getMinecraft()
+                                .mcDataDir
+                                .toPath()
+                                .resolve("config/minecraftagenttools/schematics"));
         SchematicClient.active =
                 new SchematicClient(
                         () -> {
                             Minecraft mc = Minecraft.getMinecraft();
                             return new SchematicClient.State(
                                     mc.thePlayer == null ? null : mc.theWorld,
-                                    mc.theWorld == null ? 0 : mc.theWorld.provider.dimensionId);
+                                    mc.theWorld == null ? 0 : mc.theWorld.provider.dimensionId,
+                                    worldIdentity(mc));
                         },
                         api == null ? null : api::build,
-                        error);
+                        error,
+                        store);
         bridge = new GameBridge(port, token, SchematicaTools::validate, SchematicaMod::call);
         FMLCommonHandler.instance().bus().register(this);
         MinecraftForge.EVENT_BUS.register(this);
-        Runtime.getRuntime().addShutdownHook(new Thread(bridge::close, "mat-schematica-shutdown"));
+        Runtime.getRuntime()
+                .addShutdownHook(
+                        new Thread(
+                                () -> {
+                                    bridge.close();
+                                    store.close();
+                                },
+                                "mat-schematica-shutdown"));
+    }
+
+    private static String worldIdentity(Minecraft mc) {
+        if (mc.theWorld == null || mc.thePlayer == null) return null;
+        if (mc.isIntegratedServerRunning() && mc.getIntegratedServer() != null)
+            return "local:"
+                    + mc.mcDataDir.toPath().toAbsolutePath().normalize()
+                    + "/saves/"
+                    + mc.getIntegratedServer().getFolderName()
+                    + ":"
+                    + mc.getIntegratedServer().worldServerForDimension(0).getSeed();
+        if (mc.func_147104_D() != null)
+            return "server:" + mc.func_147104_D().serverIP.toLowerCase(java.util.Locale.ROOT);
+        return null;
     }
 
     private static java.util.Map<String, Object> call(

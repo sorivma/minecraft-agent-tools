@@ -5,6 +5,13 @@ import net.minecraft.nbt.*;
 
 /** Detached render-only tile data; the schematic world never ticks these tiles. */
 final class TileData {
+    static void machine(NBTTagCompound nbt, int id, int facing) {
+        nbt.setInteger("mID", id);
+        nbt.setShort("mFacing", (short) facing);
+        // NBT stores the raw color (0 = unpainted), not getColorization() (-1).
+        if (!nbt.hasKey("mColor")) nbt.setByte("mColor", (byte) 0);
+    }
+
     static NBTTagCompound parse(String value) {
         if (value.length() > 8192)
             throw new IllegalArgumentException("tileNbt exceeds 8192 characters");

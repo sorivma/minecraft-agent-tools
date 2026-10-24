@@ -70,7 +70,8 @@ final class SchematicaApi {
         if (!Block.blockRegistry.containsKey(name))
             throw new IllegalArgumentException("Unknown block: " + name);
         Block block = (Block) Block.blockRegistry.getObject(name);
-        int meta = integer(p, "meta", 0, 0, 15), id = integer(p, "machineId", 0, 0, 32767);
+        int meta = integer(p, "meta", 0, 0, Layout.MAX_META),
+                id = integer(p, "machineId", 0, 0, 32767);
         int facing = integer(p, "facing", 2, 0, 5);
         if (id > 0) {
             Object[] machines =
@@ -119,6 +120,9 @@ final class SchematicaApi {
                                 layout.width,
                                 layout.height,
                                 layout.length);
+        schematic =
+                SchematicMetadata.wrap(
+                        schematicType, schematic, layout.width, layout.height, layout.length);
         Method setBlock =
                 schematicType.getMethod(
                         "setBlock", int.class, int.class, int.class, Block.class, int.class);
@@ -148,9 +152,7 @@ final class SchematicaApi {
                     throw new IllegalArgumentException("Block did not create a tile entity");
                 NBTTagCompound nbt = TileData.at(p.tileNbt, bx, by, bz);
                 if (p.machineId > 0) {
-                    nbt.setInteger("mID", p.machineId);
-                    nbt.setShort("mFacing", (short) p.facing);
-                    if (!nbt.hasKey("mColor")) nbt.setByte("mColor", (byte) -1);
+                    TileData.machine(nbt, p.machineId, p.facing);
                     if (p.meta >= 4) {
                         int mask = p.connections;
                         if (mask < 0)
@@ -185,6 +187,7 @@ final class SchematicaApi {
         final List<Object> chunks = new ArrayList<Object>();
         final RenderBlocks blocks;
         private int refreshCursor;
+        private SchematicPreview preview;
 
         Ghost(World world, Layout layout, List<Resolved> palette, int[] cells) {
             this.world = world;
@@ -246,8 +249,14 @@ final class SchematicaApi {
         }
 
         public void close() throws ReflectiveOperationException {
+            if (preview != null) preview.close();
             for (Object chunk : chunks) chunkType.getMethod("delete").invoke(chunk);
             chunks.clear();
+        }
+
+        public void preview(int left, int top, int width, int height) throws Exception {
+            if (preview == null) preview = new SchematicPreview(world, layout);
+            preview.render(left, top, width, height);
         }
 
         public byte[] export(Plans.Plan plan) throws java.io.IOException {

@@ -7,6 +7,20 @@ import org.junit.Test;
 
 public class TileDataTest {
     @Test
+    public void unpaintedHatchUsesRawNbtColorZeroAndValidTextureIndex() {
+        NBTTagCompound nbt = TileData.at(null, 0, 0, 0);
+        TileData.machine(nbt, 30, 2);
+        // GT getColorization() subtracts one from the stored raw color; MTEHatch
+        // indexes its 17 casing textures with getColorization() + 1.
+        assertEquals(0, nbt.getByte("mColor"));
+        assertEquals(30, nbt.getInteger("mID"));
+        assertEquals(2, nbt.getShort("mFacing"));
+        NBTTagCompound painted = TileData.parse("{mColor:16b}");
+        TileData.machine(painted, 31, 5);
+        assertEquals(16, painted.getByte("mColor"));
+    }
+
+    @Test
     public void modPipeDataIsCopiedWithLocalCoordinatesAndNestedDataIntact() {
         NBTTagCompound template =
                 TileData.parse("{x:900,y:80,z:900,pipe:{type:42},connections:48b}");

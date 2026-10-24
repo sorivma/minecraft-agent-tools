@@ -36,7 +36,7 @@ public final class SchematicaTools {
                                 "block",
                                 textSpec(256),
                                 "meta",
-                                integerSpec(0, 15),
+                                integerSpec(0, Layout.MAX_META),
                                 "machineId",
                                 integerSpec(1, 32767),
                                 "facing",
@@ -96,6 +96,7 @@ public final class SchematicaTools {
             }
             if (name.equals("put")) {
                 props.put("name", textSpec(128));
+                props.put("group", map("type", "string", "minLength", 0, "maxLength", 128));
                 props.put("width", integerSpec(1, 128));
                 props.put("height", integerSpec(1, 128));
                 props.put("length", integerSpec(1, 128));
@@ -116,15 +117,15 @@ public final class SchematicaTools {
             switch (name) {
                 case "status":
                     description =
-                            "Discover client scope, Schematica readiness and authoring limits.";
+                            "Discover client scope, persistent world key, saved-plan count, loading/errors, Schematica readiness and authoring limits. Include world in the chat widget JSON to enable explicit restoration after rejoining.";
                     break;
                 case "list":
                     description =
-                            "List the independent agent plans in this client world, with visibility and layout revision.";
+                            "List plans, nested hierarchy and required material counts in this client world. Groups are slash-separated paths assigned by schematic_put.";
                     break;
                 case "put":
                     description =
-                            "Create or replace a ghost construction plan at world x/y/z. Optional planId requires its revision. Palette uses registry block names, meta 0..15; GregTech machines, pipes and cables use block gregtech:gt.blockmachines, machineId from gt_list_machines (no meta), optional facing 0 down/1 up/2 north/3 south/4 west/5 east. GT pipes accept connections bitmask 0..63 (bits down,up,north,south,west,east); omitted means connect to adjacent GT tiles, a visual layout assumption, not a functional check. Other tile entity blocks/pipes require tileNbt, an SNBT compound up to 8192 characters with mod-specific type/render data; obtain real data rather than guessing. Coordinates are replaced with local schematic coordinates. Tiles do not tick. Inclusive local boxes reference zero-based palette entries; later boxes overwrite earlier ones, unspecified cells are air. At most 65536 cells/plan, 512 tiles/plan, 8 plans and 131072 cells total. No real blocks are placed. Use wool + label only for explicitly conceptual placeholders; explain these to the user.";
+                            "Create or replace a ghost construction plan at world x/y/z. Optional group is a slash-separated hierarchy path (up to four levels, 128 characters); omitted or empty puts the plan at root. Group related plans, e.g. Factory/Power, when creating many. Optional planId requires its revision. Palette uses registry block names, meta 0..65535 (extended GTNH block metadata, e.g. gregtech:gt.blockframes meta 300); GregTech machines, pipes and cables use block gregtech:gt.blockmachines, machineId from gt_list_machines (no meta), optional facing 0 down/1 up/2 north/3 south/4 west/5 east. GT pipes accept connections bitmask 0..63 (bits down,up,north,south,west,east); omitted means connect to adjacent GT tiles, a visual layout assumption, not a functional check. Other tile entity blocks/pipes require tileNbt, an SNBT compound up to 8192 characters with mod-specific type/render data; obtain real data rather than guessing. Coordinates are replaced with local schematic coordinates. Tiles do not tick. Inclusive local boxes reference zero-based palette entries; later boxes overwrite earlier ones, unspecified cells are air. At most 65536 cells/plan, 512 tiles/plan, 32 plans and 131072 cells total. No real blocks are placed. Use wool + label only for explicitly conceptual placeholders; explain these to the user.";
                     break;
                 case "display":
                     description =
@@ -139,7 +140,7 @@ public final class SchematicaTools {
                     break;
                 default:
                     description =
-                            "Export an agent plan as .schematic and authoring .json files in the MCP working directory's schematics folder. Does not overwrite files. Files use registry mappings and typed GregTech tile data; display in-game is independent of export.";
+                            "Export an agent plan as .schematic and authoring .json files in the MCP working directory's schematics folder. Does not overwrite files. Files use registry mappings and typed GregTech tile data; display in-game is independent of export. Alpha export rejects metadata above 15 to avoid truncation; use schematic_get for lossless layout JSON in that case.";
             }
             boolean read = name.equals("status") || name.equals("list") || name.equals("get");
             out.add(
@@ -185,7 +186,11 @@ public final class SchematicaTools {
             Map<String, Object> p = (Map<String, Object>) props.get(key);
             if (p == null) throw new IllegalArgumentException("Unknown argument: " + key);
             String type = (String) p.get("type");
-            if (type.equals("string"))
+            if (key.equals("group")) {
+                if (!(args.get(key) instanceof String))
+                    throw new IllegalArgumentException("Expected group string");
+                PlanPresentation.group((String) args.get(key));
+            } else if (type.equals("string"))
                 Layout.text(args, key, ((Number) p.get("maxLength")).intValue());
             if (type.equals("integer"))
                 Layout.requiredInt(
@@ -197,6 +202,7 @@ public final class SchematicaTools {
                 throw new IllegalArgumentException("Expected boolean: " + key);
         }
         if (tool.equals("schematic_put")) {
+            if (args.containsKey("group")) PlanPresentation.group((String) args.get("group"));
             if (args.containsKey("planId") != args.containsKey("revision"))
                 throw new IllegalArgumentException("planId and revision must be supplied together");
             Layout layout = new Layout(args);

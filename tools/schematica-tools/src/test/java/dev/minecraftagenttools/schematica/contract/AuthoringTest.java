@@ -8,6 +8,27 @@ import org.junit.Test;
 
 public class AuthoringTest {
     @Test
+    public void extendedFrameMetadataSurvivesValidationAndMaterialCounts() {
+        Map<String, Object> args = layout();
+        args.put("palette", Arrays.asList(map("block", "gregtech:gt.blockframes", "meta", 300)));
+        args.put(
+                "boxes",
+                Arrays.asList(
+                        map("x1", 0, "y1", 0, "z1", 0, "x2", 0, "y2", 0, "z2", 0, "palette", 0)));
+        args.putAll(map("session", "s", "dimension", 0, "name", "frame", "x", 0, "y", 60, "z", 0));
+        SchematicaTools.validate("schematic_put", args);
+        Layout parsed = new Layout(args);
+        assertEquals(300, parsed.palette.get(0).get("meta"));
+        assertEquals(300, PlanPresentation.materials(parsed).get(0).get("meta"));
+        args.put("palette", Arrays.asList(map("block", "gregtech:gt.blockframes", "meta", 65535)));
+        SchematicaTools.validate("schematic_put", args);
+        args.put("palette", Arrays.asList(map("block", "gregtech:gt.blockframes", "meta", 65536)));
+        reject(() -> SchematicaTools.validate("schematic_put", args));
+        args.put("palette", Arrays.asList(map("block", "gregtech:gt.blockframes", "meta", -1)));
+        reject(() -> SchematicaTools.validate("schematic_put", args));
+    }
+
+    @Test
     public void pipesAndModTileDataSurviveTheAuthoringContract() {
         Map<String, Object> data = layout();
         data.put(
