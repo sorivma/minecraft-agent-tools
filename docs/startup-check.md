@@ -1,70 +1,38 @@
-# Проверка запуска GTNH — 2026-10-20
+# Runtime validation record
 
-## Актуальный запуск: штатная Gradle-задача
+This is a record of the local checks documented on **2026-10-20**, not a claim
+that the current checkout has passed every game scenario. The game was not
+launched during repository publication preparation.
 
-По уточнённому требованию используется только существующая
-`:forge-1.7.10:runClient` проекта Harness. Файлы Gradle и реализация задачи
-не изменены. Добавленные PS/CMD-обёртки и их профили удалены; созданная запись
-Prism архивирована. Моды и конфигурация остаются в `forge-1.7.10/run`.
+## Recorded environment and outcome
 
-Выполнена команда:
+| Check | Recorded result | What it establishes |
+| --- | --- | --- |
+| GTNH 2.9.0-RC-2 client startup, Forge 10.13.4.1614 | Reached the main menu; 328 mods loaded. | The installed adapters and widget did not prevent this client from starting. |
+| Schematica bridge status | `schematic_status` returned `ok: true` and `unavailable: null`. | The installed bridge could dispatch a status request on the client tick. |
+| Schematica mod dependency | Corrected `required-after:schematica` to `required-after:Schematica`; added `ModDependencyTest`. | The dependency matches the case-sensitive ID declared by the inspected mod. |
 
-```powershell
-.\gradlew.bat :forge-1.7.10:runClient
-```
+The latest recorded launch used the neighboring Harness project's existing
+`:forge-1.7.10:runClient` task. Its local LWJGL3ify setup relaunched the game on
+Java 21. An earlier check used Prism. Those launcher/configuration details belong
+to that local installation; they are not prerequisites or portable launch
+instructions for this standalone repository.
 
-Стандартный запуск Java 8 подхватывает мод LWJGL3ify. Его штатный relauncher
-перезапускает установленную игру на Java 21. В локальном
-`config/lwjgl3ify-relauncher.json` сохранены выбранная Java и `hideSettingsOnLaunch`,
-поэтому окно выбора Java не требует действий пользователя. Используется штатный
-режим `forwardLogs: false`; с включённым перенаправлением наблюдались нативные
-сбои SDL3.dll, поэтому этот отладочный режим не оставлен включённым.
+No current source commit or reproducible full mod manifest was captured with that
+record. Treat it as limited historical evidence, not a release certification.
 
-Relauncher использует установленный Minecraft с SRG-именами. Передаваемый из
-Gradle параметр `mixin.env.remapRefMap=true` изначально приводил к преобразованию
-ссылок в MCP-имена и ошибке `AccessorMinecraft.timer` мода Salis Arcana.
-Настройка `customOptions` указывает локальный `config/mixin-runtime.srg`
-с тождественным отображением; задача и JAR модов для этого не меняются.
-Ресурсы AssetDirector заполнены в локальном `run` и штатном кэше ресурсов Gradle.
+## Still to verify in-game
 
-Результат без управления интерфейсом: журнал содержит
-`Forge Mod Loader has successfully loaded 328 mods`; запрос `schematic_status`
-к установленному мосту обработан клиентским игровым потоком с `ok: true` и
-`unavailable: null`. Проверка относится к запуску и работе клиентского тика.
-Игровые сценарии схем и Codex в мире этим не подтверждаются.
+- Dedicated-server loading without client-only classes or a mandatory client mod.
+- Complete MCP connection and real observation/recipe calls in the intended client.
+- Agreement between observations and actual player, inventory, block and machine state.
+- Rejection of old scopes and callbacks after changing worlds, dimensions or reconnecting.
+- Particle visibility, expiry and cleanup for the correct player.
+- Multiple Schematica plans, mod-specific textures, layers and per-plan widget controls.
+- Explicit saved-plan restoration and `.schematic` export/import in the target modpack.
+- GregTech recipe, machine and StructureLib coverage with the exact installed versions.
 
-## История предыдущей проверки
-
-Пользователь отдельно разрешил запуск и диагностику клиента. Проверка выполнена
-на локальной копии GTNH 2.9.0-RC-2 в `minecraft-harness/forge-1.7.10/run`, через
-отдельный инстанс Prism `Minecraft_Harness_Local_GTNH`, Java 21.0.11.
-
-## Воспроизведение и исправление
-
-1. Первое обращение к уже открытому Prism не запустило игру: журнал содержал
-   `Minecraft_Harness_Local_GTNH resolves to nothing`. Список инстансов не был
-   перечитан после добавления новой папки. После штатного закрытия и повторного
-   запуска Prism новый инстанс обнаружен.
-2. Клиент дошёл до экрана Forge с отсутствующей зависимостью `schematica : any`.
-   Аннотация установленного `Schematica-1.12.6-GTNH.jar` объявляет `modid="Schematica"`,
-   а адаптер требовал `required-after:schematica`. Поиск зависимостей Forge
-   чувствителен к регистру.
-3. Добавлен `ModDependencyTest`: до исправления
-   `gradlew.bat :forge-schematica-1.7.10:test --tests '*ModDependencyTest'`
-   завершался с одной ошибкой. Зависимость исправлена на `required-after:Schematica`.
-4. `gradlew.bat spotlessApply :forge-schematica-1.7.10:build bundle` прошёл.
-   Переобфусцированный JAR установлен в локальный `run/mods`; SHA-256 установленного
-   файла совпадает с результатом сборки. Повторный запуск выполнен тем же
-   `run/run-client.ps1`.
-
-## Живой результат
-
-Клиент самостоятельно завершил загрузку и показал главное меню GTNH 2.9.0-RC-2,
-Forge 10.13.4.1614, `Mods (328/328)`. Экран отсутствующей зависимости больше не
-появляется. Клиент оставлен в главном меню; пользовательские миры не открывались.
-
-Эта проверка подтверждает старт клиента с установленными адаптерами и виджетом.
-Она не подтверждает авторизацию/ответы Codex в мире, отрисовку нескольких схем,
-текстуры машин или экспорт/импорт схем: эти сценарии отдельно не выполнялись.
-Gradle `runClient` не был путём этой проверки: локальная сборка запускается через
-Prism с сохранёнными настройками LWJGL3ify, без изменения Gradle для подготовки GTNH.
+The [technical guide](reference.ru.md#проверка-пользователем-на-выделенном-сервере)
+and [Schematica guide](schematica.md#ограничения-и-проверка) contain detailed scenarios.
+Record the source commit, exact mod versions, steps and observed results when
+adding evidence. Successful unit tests or compilation do not establish these results.

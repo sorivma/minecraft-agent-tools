@@ -14,6 +14,7 @@ spotless {
     kotlinGradle {
         target(
             "*.gradle.kts",
+            "gradle/*.gradle.kts",
             "core/*/build.gradle.kts",
             "tools/*/build.gradle.kts",
             "adapters/*/build.gradle.kts"
@@ -30,7 +31,15 @@ allprojects {
     repositories { mavenCentral() }
 }
 
-subprojects { tasks.withType<JavaCompile>().configureEach { options.encoding = "UTF-8" } }
+subprojects {
+    tasks.withType<JavaCompile>().configureEach { options.encoding = "UTF-8" }
+    tasks.withType<Jar>().configureEach {
+        from(rootProject.file("LICENSE")) {
+            into("META-INF")
+            rename { "LICENSE-minecraft-agent-tools" }
+        }
+    }
+}
 
 tasks.named("build") { dependsOn(subprojects.map { "${it.path}:build" }) }
 
@@ -50,12 +59,11 @@ val bundle by
             ":forge-nei-1.7.10:assemble"
         )
         dependsOn(":gregtech-tools:jar", ":forge-gregtech-1.7.10:assemble")
-        dependsOn(
-            ":schematica-tools:jar",
-            ":forge-schematica-1.7.10:assemble",
-            ":harness-schematica-1.7.10:assemble"
-        )
+        dependsOn(":schematica-tools:jar", ":forge-schematica-1.7.10:assemble")
         into(layout.buildDirectory.dir("bundle"))
+        from("LICENSE", "THIRD_PARTY_NOTICES.md")
+        from("docs/getting-started.md") { rename { "GETTING_STARTED.md" } }
+        from("licenses") { into("licenses") }
         from(project(":schematica-tools").tasks.named("jar")) {
             into("plugins")
             rename { "schematica-tools.jar" }
@@ -68,13 +76,15 @@ val bundle by
         ) {
             into("client-mods")
         }
-        from(
-            project(":harness-schematica-1.7.10")
-                .layout
-                .buildDirectory
-                .file("libs/minecraft-agent-tools-schematica-harness-1.7.10-${project.version}.jar")
-        ) {
-            into("harness-mods")
+        findProject(":harness-schematica-1.7.10")?.let { extension ->
+            dependsOn("${extension.path}:assemble")
+            from(
+                extension.layout.buildDirectory.file(
+                    "libs/minecraft-agent-tools-schematica-harness-1.7.10-${project.version}.jar"
+                )
+            ) {
+                into("harness-mods")
+            }
         }
         from(
             project(":mcp-server")
@@ -138,3 +148,5 @@ val bundle by
     }
 
 tasks.named("build") { dependsOn(bundle) }
+
+apply(from = "gradle/verification.gradle.kts")

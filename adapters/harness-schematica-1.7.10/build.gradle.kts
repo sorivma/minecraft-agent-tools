@@ -8,14 +8,7 @@ java { toolchain { languageVersion.set(JavaLanguageVersion.of(8)) } }
 minecraft { mcVersion.set("1.7.10") }
 
 // Optional extension only: the independent bridge/provider never depends on Harness.
-val harnessApi =
-    rootProject.file(
-        providers
-            .gradleProperty("harnessApiJar")
-            .getOrElse(
-                "../minecraft-harness/forge-1.7.10/build/libs/minecraft-harness-forge-1.7.10-0.1.0-dev.jar"
-            )
-    )
+val harnessApi = rootProject.file(providers.gradleProperty("harnessApiJar").get())
 
 dependencies {
     compileOnly(files(harnessApi))

@@ -1,0 +1,23 @@
+name: Bug report
+description: Report a reproducible problem with a tool, adapter, or build.
+body:
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Java version, commit, MCP client, Forge/modpack and relevant mod versions.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Steps, tool name and redacted arguments. Include expected and actual behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Remove tokens, private server addresses, player identifiers and personal paths.
+      render: text

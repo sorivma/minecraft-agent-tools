@@ -30,10 +30,15 @@ tasks.jar {
     manifest { attributes["Main-Class"] = application.mainClass.get() }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+    from(rootProject.file("THIRD_PARTY_NOTICES.md")) { into("META-INF") }
+    from(rootProject.file("licenses")) { into("META-INF/licenses") }
 }
 
 distributions.main {
     contents {
+        from(rootProject.file("LICENSE"))
+        from(rootProject.file("THIRD_PARTY_NOTICES.md"))
+        from(rootProject.file("licenses")) { into("licenses") }
         from(project(":minecraft-tools").tasks.named("jar")) { into("plugins") }
         from(project(":nei-tools").tasks.named("jar")) { into("plugins") }
         from(project(":gregtech-tools").tasks.named("jar")) { into("plugins") }

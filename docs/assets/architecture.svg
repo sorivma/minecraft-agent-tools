@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="480" viewBox="0 0 1200 480" role="img" aria-labelledby="title desc">
+  <title id="title">Agent to world: a block-by-block architecture</title>
+  <desc id="desc">Three voxel islands connected by redstone-like paths. An MCP client sends stdio requests to a Java 21 core with removable provider JARs. Token-authenticated loopback TCP reaches Java 8 Forge adapters, which queue work and validate world scope on the game thread.</desc>
+  <defs>
+    <pattern id="dirt" width="32" height="32" patternUnits="userSpaceOnUse">
+      <rect width="32" height="32" fill="#684630"/>
+      <path d="M0 0h12v6H0zM20 15h12v7H20z" fill="#80573b"/>
+      <path d="M4 19h8v6H4zM24 2h8v7H24z" fill="#493629"/>
+      <path d="M12 8h7v5h-7zM0 29h5v3H0z" fill="#947052"/>
+    </pattern>
+    <pattern id="stone" width="32" height="24" patternUnits="userSpaceOnUse">
+      <rect width="32" height="24" fill="#58616a"/>
+      <path d="M2 2h15v6H2zM19 12h11v7H19z" fill="#6c7680"/>
+      <path d="M0 18h13v4H0zM22 2h10v4H22z" fill="#424c56"/>
+    </pattern>
+    <g id="plugin">
+      <path d="M0 12L24 0L48 12L24 24Z" fill="#b9c2c2"/>
+      <path d="M0 12L24 24V52L0 40Z" fill="#747f83"/>
+      <path d="M24 24L48 12V40L24 52Z" fill="#4d5d67"/>
+      <path d="M6 20L18 26V34L6 28Z" fill="#ecc068"/>
+      <path d="M29 28L42 22V29L29 35Z" fill="#283942"/>
+    </g>
+    <g id="grass">
+      <path d="M0 16L32 0L64 16L32 32Z" fill="#86af4f"/>
+      <path d="M0 16L32 32V64L0 48Z" fill="#805437"/>
+      <path d="M32 32L64 16V48L32 64Z" fill="#593d2c"/>
+      <path d="M0 16L32 32V42L24 38V34L16 30V34L8 30V24L0 20Z" fill="#628e3c"/>
+      <path d="M32 32L64 16V24L56 28V32L48 36V32L40 36V42L32 46Z" fill="#467637"/>
+    </g>
+  </defs>
+  <rect width="1200" height="480" fill="#171e27"/>
+  <g fill="#2d3a46" shape-rendering="crispEdges">
+    <path d="M0 214h32v-32h32v16h48v-48h32v48h64v16h32v66H0z"/>
+    <path d="M946 230v-32h48v-48h32v32h48v-64h32v64h48v32h46v66H946z"/>
+    <path d="M338 242v-32h32v-16h48v32h32v54H338z"/>
+  </g>
+  <g fill="#697782" shape-rendering="crispEdges">
+    <path d="M48 38h4v4h-4zM348 109h4v4h-4zM1138 40h4v4h-4zM762 80h4v4h-4zM816 265h4v4h-4z"/>
+    <path d="M264 69h4v12h-4zM260 73h12v4h-12z" fill="#acb9b5"/>
+  </g>
+  <g font-family="Consolas, 'Liberation Mono', monospace">
+    <text x="40" y="40" fill="#c1c9b9" font-size="13" letter-spacing="2">AGENT → BRIDGE → WORLD</text>
+    <text x="1160" y="40" text-anchor="end" fill="#7f928c" font-size="12">FORGE 1.7.10</text>
+    <text x="68" y="96" fill="#a6c779" font-size="16" font-weight="700">01 / MCP CLIENT</text>
+    <text x="452" y="96" fill="#edbf68" font-size="16" font-weight="700">02 / JAVA 21</text>
+    <text x="890" y="96" fill="#a6c779" font-size="16" font-weight="700">03 / JAVA 8</text>
+  </g>
+  <!-- Redstone paths cross process boundaries; square steps replace UI arrows. -->
+  <g fill="none" stroke-linecap="square" shape-rendering="crispEdges">
+    <path d="M226 233H292V218H434" stroke="#502c2b" stroke-width="14"/>
+    <path d="M226 229H292V214H434" stroke="#d86446" stroke-width="6"/>
+    <path d="M411 198L427 214L411 230" stroke="#f5a368" stroke-width="4"/>
+    <path d="M683 232H735V215H878" stroke="#502c2b" stroke-width="14"/>
+    <path d="M683 228H735V211H878" stroke="#d86446" stroke-width="6"/>
+    <path d="M855 195L871 211L855 227" stroke="#f5a368" stroke-width="4"/>
+  </g>
+  <g font-family="Consolas, 'Liberation Mono', monospace" font-size="13" text-anchor="middle">
+    <text x="335" y="176" fill="#e6d6b6">MCP / stdio</text>
+    <text x="773" y="160" fill="#e6d6b6">loopback TCP</text>
+    <text x="773" y="180" fill="#d49a69">+ private token</text>
+  </g>
+  <!-- Island one: a block terminal on a wooden workbench. -->
+  <g shape-rendering="crispEdges">
+    <path d="M48 264H256V306H240V322H80V310H48Z" fill="url(#dirt)"/>
+    <path d="M48 260H256V272H224V280H208V272H160V278H128V272H64V280H48Z" fill="#527b38"/>
+    <path d="M48 258H256V264H48Z" fill="#8eae55"/>
+    <path d="M92 236H224V248H92Z" fill="#b38a53"/>
+    <path d="M100 248H112V258H100ZM204 248H216V258H204Z" fill="#705234"/>
+    <path d="M98 142H206V220H98Z" fill="#99a0a0"/>
+    <path d="M106 150H198V212H106Z" fill="#343e46"/>
+    <path d="M114 158H190V204H114Z" fill="#152f30"/>
+    <path d="M130 169H138V177H130ZM138 177H146V185H138ZM130 185H138V193H130ZM155 189H176V193H155Z" fill="#b0d784"/>
+    <path d="M142 220H166V231H180V236H128V231H142Z" fill="#6d777e"/>
+    <path d="M206 142L222 152V226L206 220Z" fill="#56626b"/>
+    <path d="M98 142L112 132H208L222 152L206 142Z" fill="#c0c3b6"/>
+    <path d="M68 250h4v8h-4zM64 246h4v8h-4zM72 244h4v10h-4z" fill="#8eae55"/>
+  </g>
+  <!-- Island two: core machine and four removable provider cartridges. -->
+  <g shape-rendering="crispEdges">
+    <path d="M444 265H692V306H676V322H476V310H444Z" fill="url(#stone)"/>
+    <path d="M444 258H692V267H444Z" fill="#8c9697"/>
+    <path d="M455 139L511 113L567 139L511 165Z" fill="#a7afab"/>
+    <path d="M455 139L511 165V236L455 210Z" fill="#727e83"/>
+    <path d="M511 165L567 139V210L511 236Z" fill="#455762"/>
+    <path d="M466 161L498 176V200L466 185Z" fill="#272e34"/>
+    <path d="M474 171L490 179V187L474 179Z" fill="#f2bf65"/>
+    <path d="M521 179L555 163V170L521 186ZM521 193L555 177V184L521 200ZM521 207L555 191V198L521 214Z" fill="#243b44"/>
+    <path d="M479 139L511 125L543 139L511 153Z" fill="#74513b"/>
+    <path d="M495 139L511 132L527 139L511 146Z" fill="#efb565"/>
+    <use href="#plugin" x="580" y="156"/>
+    <use href="#plugin" x="624" y="178"/>
+    <use href="#plugin" x="536" y="208"/>
+    <use href="#plugin" x="580" y="230"/>
+  </g>
+  <!-- Island three: actual game terrain and a queue of requests. -->
+  <g shape-rendering="crispEdges">
+    <path d="M886 265H1158V310H1134V326H918V310H886Z" fill="url(#dirt)"/>
+    <path d="M886 258H1158V272H1142V280H1126V272H1062V279H1046V272H950V280H934V272H886Z" fill="#527b38"/>
+    <path d="M886 258H1158V264H886Z" fill="#8eae55"/>
+    <path d="M1106 174H1124V256H1106Z" fill="#755131"/>
+    <path d="M1111 180H1117V252H1111Z" fill="#9b713d"/>
+    <path d="M1078 134H1146V146H1162V182H1146V194H1086V182H1070V150H1078Z" fill="#355e36"/>
+    <path d="M1078 134H1146V146H1130V158H1106V150H1070V142H1078Z" fill="#73984c"/>
+    <path d="M1086 158H1102V170H1086ZM1122 174H1138V186H1122ZM1142 150H1158V162H1142Z" fill="#547e40"/>
+    <use href="#grass" x="1004" y="206"/>
+    <path d="M893 206H973V246H893Z" fill="#39454c"/>
+    <path d="M897 210H917V242H897ZM923 210H943V242H923ZM949 210H969V242H949Z" fill="#79867f"/>
+    <path d="M901 215H913V225H901ZM927 215H939V225H927ZM953 215H965V225H953Z" fill="#b5d17d"/>
+    <path d="M973 223H993V219L1001 227L993 235V231H973Z" fill="#dfc68e"/>
+    <path d="M1080 250h4v8h-4zM1076 246h4v8h-4zM1084 244h4v10h-4z" fill="#8eae55"/>
+  </g>
+  <g font-family="Consolas, 'Liberation Mono', monospace">
+    <g fill="#f0e9d6" font-size="20" font-weight="700">
+      <text x="48" y="363">Your agent</text>
+      <text x="444" y="363">Core + plugin JARs</text>
+      <text x="886" y="363">Game adapter</text>
+    </g>
+    <g fill="#aab3af" font-size="13">
+      <text x="48" y="389">Chooses and calls tools</text>
+      <text x="48" y="411">Receives structured context</text>
+      <text x="444" y="389">Discover → validate → route</text>
+      <text x="444" y="411">MC / NEI / GT / Schematica</text>
+      <text x="886" y="389">Queue → scope check → tick</text>
+      <text x="886" y="411">Server or client game thread</text>
+    </g>
+    <path d="M48 436H1158" stroke="#364038" stroke-width="2"/>
+    <text x="48" y="460" fill="#7f928c" font-size="12">JAVA 8 CONTRACTS</text>
+    <text x="444" y="460" fill="#7f928c" font-size="12">INDEPENDENT WORLD SESSIONS</text>
+    <text x="886" y="460" fill="#7f928c" font-size="12">NO FORCED CHUNK LOADING</text>
+  </g>
+</svg>

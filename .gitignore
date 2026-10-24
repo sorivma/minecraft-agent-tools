@@ -14,3 +14,18 @@
 .env
 .env.*
 !.env.example
+
+# Local game state, credentials and exported user plans
+**/config/minecraftagenttools*.cfg
+**/config/minecraftagenttools/
+/schematics/
+/mods/
+/saves/
+/logs/
+/crash-reports/
+usercache.json
+usernamecache.json
+server.properties
+servers.dat*
+.DS_Store
+Thumbs.db

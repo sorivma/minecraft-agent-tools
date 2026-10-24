@@ -19,8 +19,7 @@ val moduleGroups =
                 "forge-1.7.10",
                 "forge-nei-1.7.10",
                 "forge-gregtech-1.7.10",
-                "forge-schematica-1.7.10",
-                "harness-schematica-1.7.10"
+                "forge-schematica-1.7.10"
             )
     )
 
@@ -29,4 +28,14 @@ moduleGroups.forEach { (directory, modules) ->
         include(module)
         project(":$module").projectDir = file("$directory/$module")
     }
+}
+
+// An external UI extension is opt-in: a fresh clone never needs a sibling checkout.
+providers.gradleProperty("harnessApiJar").orNull?.let { path ->
+    require(path.isNotBlank() && file(path).isFile) {
+        "harnessApiJar must point to an existing Harness dev JAR. " +
+            "Omit -PharnessApiJar to build the standalone project."
+    }
+    include("harness-schematica-1.7.10")
+    project(":harness-schematica-1.7.10").projectDir = file("adapters/harness-schematica-1.7.10")
 }
