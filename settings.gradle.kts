@@ -13,13 +13,21 @@ rootProject.name = "minecraft-agent-tools"
 val moduleGroups =
     mapOf(
         "core" to listOf("bridge-protocol", "mcp-api", "mcp-server", "game-bridge"),
-        "tools" to listOf("minecraft-tools", "nei-tools", "gregtech-tools", "schematica-tools"),
+        "tools" to
+            listOf(
+                "minecraft-tools",
+                "nei-tools",
+                "gregtech-tools",
+                "schematica-tools",
+                "betterquesting-tools"
+            ),
         "adapters" to
             listOf(
                 "forge-1.7.10",
                 "forge-nei-1.7.10",
                 "forge-gregtech-1.7.10",
-                "forge-schematica-1.7.10"
+                "forge-schematica-1.7.10",
+                "forge-betterquesting-1.7.10"
             )
     )
 

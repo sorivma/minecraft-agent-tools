@@ -23,8 +23,8 @@ Inspect the world. Explore recipes. Plan what to build next.</p>
 ---
 
 An independent **MCP server and Forge 1.7.10 adapters** that expose structured game
-state to an AI agent. Four removable providers connect vanilla Minecraft,
-NotEnoughItems, GregTech and Schematica to any client supporting this project's MCP
+state to an AI agent. Five removable providers connect vanilla Minecraft,
+NotEnoughItems, GregTech, Schematica and BetterQuesting to any client supporting this project's MCP
 stdio profile.
 
 **Experimental, with implemented tools and isolated tests.** In-game validation is
@@ -40,6 +40,7 @@ The cover above is concept art, not a game screenshot.
 | “Where is that dropped item?” | Entity lookup and a temporary particle marker visible to the selected player. |
 | “How do I make this, and what uses it?” | Item search, recipes and usages through installed NEI handlers. |
 | “What does this GregTech recipe need?” | Items, fluids, EU/t, duration and machine information from the installed registries. |
+| “What quest comes next, and what does it require?” | BetterQuesting chapters, search, dependencies, tasks, rewards and synchronized player progress. See the [quest guide](docs/betterquesting.md). |
 | “Lay out a workshop with room to expand.” | Named Schematica ghost plans, material counts and `.schematic` / JSON export. |
 
 These are example requests, not recorded demo transcripts. The agent chooses and
@@ -47,7 +48,7 @@ calls tools; it still needs the corresponding adapter, credentials and game sess
 **Players move, craft and place real blocks themselves.** Markers and blueprints
 provide guidance; autonomous movement and building are outside the current scope.
 
-## Four integrations, one endpoint
+## Five integrations, one endpoint
 
 | Provider | Tools | Install the adapter on | Start with |
 | --- | ---: | --- | --- |
@@ -55,6 +56,7 @@ provide guidance; autonomous movement and building are outside the current scope
 | **NEI** | 5 | Client with NEI GTNH | `nei_status` |
 | **GregTech** | 12 | Server / integrated server with GTNH GregTech | `gt_status` |
 | **Schematica** | 7 | Client with Schematica GTNH | `schematic_status` |
+| **BetterQuesting** | 8 | Client with BetterQuesting GTNH | `bq_status` |
 
 Each provider lives in its own JAR. Remove it from `plugins/` and restart the MCP
 process to remove its tools. An empty plugin directory is valid. The core has no

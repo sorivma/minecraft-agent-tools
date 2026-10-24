@@ -19,6 +19,8 @@ val verifyBundle by
                     "plugins/nei-tools.jar",
                     "plugins/gregtech-tools.jar",
                     "plugins/schematica-tools.jar",
+                    "plugins/betterquesting-tools.jar",
+                    "client-mods/minecraft-agent-tools-betterquesting-forge-1.7.10-${project.version}.jar",
                     "forge/minecraft-agent-tools-forge-1.7.10-${project.version}.jar",
                     "client-mods/minecraft-agent-tools-nei-forge-1.7.10-${project.version}.jar",
                     "client-mods/minecraft-agent-tools-schematica-forge-1.7.10-${project.version}.jar",

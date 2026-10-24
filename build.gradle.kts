@@ -60,10 +60,25 @@ val bundle by
         )
         dependsOn(":gregtech-tools:jar", ":forge-gregtech-1.7.10:assemble")
         dependsOn(":schematica-tools:jar", ":forge-schematica-1.7.10:assemble")
+        dependsOn(":betterquesting-tools:jar", ":forge-betterquesting-1.7.10:assemble")
         into(layout.buildDirectory.dir("bundle"))
         from("LICENSE", "THIRD_PARTY_NOTICES.md")
         from("docs/getting-started.md") { rename { "GETTING_STARTED.md" } }
         from("licenses") { into("licenses") }
+        from(project(":betterquesting-tools").tasks.named("jar")) {
+            into("plugins")
+            rename { "betterquesting-tools.jar" }
+        }
+        from(
+            project(":forge-betterquesting-1.7.10")
+                .layout
+                .buildDirectory
+                .file(
+                    "libs/minecraft-agent-tools-betterquesting-forge-1.7.10-${project.version}.jar"
+                )
+        ) {
+            into("client-mods")
+        }
         from(project(":schematica-tools").tasks.named("jar")) {
             into("plugins")
             rename { "schematica-tools.jar" }

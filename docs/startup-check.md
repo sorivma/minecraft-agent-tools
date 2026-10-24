@@ -31,6 +31,9 @@ record. Treat it as limited historical evidence, not a release certification.
 - Multiple Schematica plans, mod-specific textures, layers and per-plan widget controls.
 - Explicit saved-plan restoration and `.schematic` export/import in the target modpack.
 - GregTech recipe, machine and StructureLib coverage with the exact installed versions.
+- BetterQuesting chapter ordering, quest/task/reward data, party/repeat progress and world transitions;
+  see the [quest validation steps](betterquesting.md#проверка-пользователем-в-gtnh). This integration
+  has isolated tests and a compile baseline, with no recorded in-game verification.
 
 The [technical guide](reference.ru.md#проверка-пользователем-на-выделенном-сервере)
 and [Schematica guide](schematica.md#ограничения-и-проверка) contain detailed scenarios.

@@ -46,12 +46,14 @@ build/bundle/
 │   ├── minecraft-tools.jar
 │   ├── nei-tools.jar
 │   ├── gregtech-tools.jar
-│   └── schematica-tools.jar
+│   ├── schematica-tools.jar
+│   └── betterquesting-tools.jar
 ├── forge/
 │   └── minecraft-agent-tools-forge-1.7.10-*.jar
 ├── client-mods/
 │   ├── minecraft-agent-tools-nei-forge-1.7.10-*.jar
-│   └── minecraft-agent-tools-schematica-forge-1.7.10-*.jar
+│   ├── minecraft-agent-tools-schematica-forge-1.7.10-*.jar
+│   └── minecraft-agent-tools-betterquesting-forge-1.7.10-*.jar
 ├── gregtech-mods/
 │   └── minecraft-agent-tools-gregtech-forge-1.7.10-*.jar
 ├── LICENSE
@@ -72,11 +74,12 @@ Removing a provider requires an MCP restart. Do not copy provider JARs or
 | NEI | Client `mods/` | NEI GTNH 2.6.44 compile baseline | `minecraftagenttoolsnei.cfg` | 25577 |
 | GregTech | Server, or client with integrated server | GT5-Unofficial 5.09.54.183 / StructureLib 1.4.45 API profile | `minecraftagenttoolsgregtech.cfg` | 25578 |
 | Schematica | Client `mods/` | Schematica 1.12.6-GTNH API profile | `minecraftagenttoolsschematica.cfg` | 25579 |
+| BetterQuesting | Client `mods/` | BetterQuesting 3.8.89-GTNH UUID API baseline | `minecraftagenttoolsbetterquesting.cfg` | 25580 |
 
 These are implementation baselines, not a claim that every listed combination
 has been verified in a live game. Install third-party mods and their dependencies
 separately. The vanilla observation adapter does not require a client mod.
-Do not put the NEI or Schematica adapters on a dedicated server.
+Do not put the NEI, Schematica or BetterQuesting adapters on a dedicated server.
 
 ## Connect an MCP client
 
@@ -116,6 +119,7 @@ private configuration, outside this repository.
 | NEI | `MAT_NEI_TOKEN`, `MAT_NEI_PORT` |
 | GregTech | `MAT_GREGTECH_TOKEN`, `MAT_GREGTECH_PORT` |
 | Schematica | `MAT_SCHEMATICA_TOKEN`, `MAT_SCHEMATICA_PORT` |
+| BetterQuesting | `MAT_BETTERQUESTING_TOKEN`, `MAT_BETTERQUESTING_PORT` |
 
 Both variables are required for optional bridges. The MCP process must run on
 the same machine as every adapter it contacts; all bridges use loopback.
@@ -134,9 +138,11 @@ An empty directory starts a core with no tools and requires no game credentials.
 - NEI: `nei_status`; wait for `ready: true`, then discover handlers.
 - GregTech: `gt_status`; select a dimension/session and discover recipe maps.
 - Schematica: `schematic_status`, then `schematic_list` or create a small plan.
+- BetterQuesting: `bq_status`, then `bq_list_lines` or `bq_search_quests`.
+  See the [quest navigation guide (RU)](https://github.com/sorivma/minecraft-agent-tools/blob/main/docs/betterquesting.md).
 
 Scopes are independent. Never reuse a Minecraft session for NEI, GregTech or
-Schematica. Rediscover after a world transition or restart.
+Schematica or BetterQuesting. Rediscover after a world transition or restart.
 
 ## Optional Harness widgets
 

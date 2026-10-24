@@ -277,6 +277,45 @@ public class PluginLoaderTest {
         }
     }
 
+    @Test
+    public void betterQuestingJarRegistersOnlyWhenInstalledAndUsesItsOwnBridge() throws Exception {
+        Path plugins = temp.newFolder("betterquesting-only").toPath();
+        Path jar = plugins.resolve("betterquesting-tools.jar");
+        Files.copy(Paths.get(System.getProperty("betterquesting.provider.jar")), jar);
+        try (PluginLoader loader = new PluginLoader(plugins)) {
+            assertEquals(8, loader.registry().tools().size());
+            RpcServer server =
+                    new RpcServer(
+                            loader.registry(),
+                            (connection, tool, args) -> {
+                                assertEquals("betterquesting", connection);
+                                assertEquals("bq_status", tool);
+                                return Collections.singletonMap("ok", true);
+                            });
+            server.handle(
+                    request(
+                            "initialize",
+                            "{\"protocolVersion\":\"2025-11-25\",\"capabilities\":{},\"clientInfo\":{}}"));
+            server.handle("{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\"}");
+            assertFalse(
+                    server.handle(
+                                    request(
+                                            "tools/call",
+                                            "{\"name\":\"bq_status\",\"arguments\":{}}"))
+                            .getAsJsonObject("result")
+                            .get("isError")
+                            .getAsBoolean());
+        }
+        Files.delete(jar);
+        try (PluginLoader loader = new PluginLoader(plugins)) {
+            assertTrue(loader.registry().tools().isEmpty());
+        }
+        try (JarFile core = new JarFile(System.getProperty("core.jar"))) {
+            assertNull(
+                    core.getEntry("dev/minecraftagenttools/betterquesting/contract/BqTools.class"));
+        }
+    }
+
     private RpcServer endpoint(PluginLoader loader) {
         RpcServer server =
                 new RpcServer(

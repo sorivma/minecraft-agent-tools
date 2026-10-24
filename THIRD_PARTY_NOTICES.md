@@ -14,7 +14,7 @@ repository and in the generated bundle. The core JAR carries it in `META-INF/lic
 Gson copyright: The Gson Authors. Error Prone copyright: The Error Prone Authors.
 Gradle copyright: the original author or authors, as recorded in the wrapper sources.
 
-Minecraft, Forge, NEI, GregTech, StructureLib, Schematica and Minecraft Harness
+Minecraft, Forge, NEI, GregTech, StructureLib, Schematica, BetterQuesting and Minecraft Harness
 are not included in the distributed project JARs. Install the required game and
 mods separately under their respective terms. The Forge adapters use the Gson
 already provided by Minecraft; the modern Gson dependency belongs to the external core only.

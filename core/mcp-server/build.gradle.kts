@@ -8,6 +8,8 @@ evaluationDependsOn(":gregtech-tools")
 
 evaluationDependsOn(":schematica-tools")
 
+evaluationDependsOn(":betterquesting-tools")
+
 java { toolchain { languageVersion.set(JavaLanguageVersion.of(21)) } }
 
 dependencies {
@@ -19,6 +21,7 @@ dependencies {
     testImplementation(project(":nei-tools"))
     testImplementation(project(":gregtech-tools"))
     testImplementation(project(":schematica-tools"))
+    testImplementation(project(":betterquesting-tools"))
 }
 
 application { mainClass.set("dev.minecraftagenttools.mcp.Main") }
@@ -43,6 +46,7 @@ distributions.main {
         from(project(":nei-tools").tasks.named("jar")) { into("plugins") }
         from(project(":gregtech-tools").tasks.named("jar")) { into("plugins") }
         from(project(":schematica-tools").tasks.named("jar")) { into("plugins") }
+        from(project(":betterquesting-tools").tasks.named("jar")) { into("plugins") }
     }
 }
 
@@ -52,7 +56,8 @@ tasks.test {
         ":minecraft-tools:jar",
         ":nei-tools:jar",
         ":gregtech-tools:jar",
-        ":schematica-tools:jar"
+        ":schematica-tools:jar",
+        ":betterquesting-tools:jar"
     )
     systemProperty(
         "schematica.provider.jar",
@@ -66,6 +71,17 @@ tasks.test {
             .absolutePath
     )
     systemProperty("core.jar", tasks.jar.get().archiveFile.get().asFile.absolutePath)
+    systemProperty(
+        "betterquesting.provider.jar",
+        project(":betterquesting-tools")
+            .tasks
+            .named<Jar>("jar")
+            .get()
+            .archiveFile
+            .get()
+            .asFile
+            .absolutePath
+    )
     systemProperty(
         "minecraft.provider.jar",
         project(":minecraft-tools")

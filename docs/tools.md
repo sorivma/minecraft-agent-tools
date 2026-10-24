@@ -13,6 +13,7 @@ argument definitions. Detailed limits and examples are in the
 | NEI | `nei_status` | Its own `session`, `dimension`; wait for `ready: true` |
 | GregTech | `gt_status` | `session`, `dimension` from the selected status dimension |
 | Schematica | `schematic_status` | Its own `session`, `dimension` |
+| BetterQuesting | `bq_status` | Its own `session`, `dimension`; optional `revision` for consistent pagination |
 
 Scopes are not interchangeable. Refresh them after changing worlds/dimensions or
 restarting. Follow `nextOffset` even when a page is empty; retain the original
@@ -96,6 +97,28 @@ Plans use registry IDs, a palette and inclusive cuboids. They do not place real
 blocks or use the printer. Full material counts do not subtract inventory or
 already placed blocks. Alpha export rejects metadata above 15; full JSON retains it.
 See [authoring examples and limits](schematica.md).
+
+## BetterQuesting · 8 tools
+
+| Tool | Purpose |
+| --- | --- |
+| `bq_status` | Client scope, questing UUID, database availability and sync limitations. |
+| `bq_list_lines` | Ordered chapters, optionally filtered by literal text. |
+| `bq_get_line` | Chapter description and paginated quests with book coordinates. |
+| `bq_search_quests` | Search names, descriptions, task/reward types and item names/IDs; filter chapter, state and visibility. |
+| `bq_get_quest` | Description, progress, prerequisite/task logic, repeat settings, chapter membership and task/reward IDs. |
+| `bq_get_task` | Task configuration, item requirements and current-player progress. |
+| `bq_get_reward` | Reward configuration, items, choices and command text as data. |
+| `bq_get_relations` | Direct prerequisites or dependents with states and requirement types. |
+
+The adapter targets the BetterQuesting GTNH 3.8.89 UUID API. It reads the client's
+last synchronized database; `ready` does not certify sync completion. Search and
+reverse-relation pages scan at most 128 candidates; always follow `nextOffset`.
+The optional `revision` rejects pages after BQ database update events. Descriptions
+use `textOffset` / `nextTextOffset`. Quest/task/reward native data supports JSON
+Pointer `path`, pagination and `omittedPaths` for retrieving truncated branches.
+These tools never submit items, detect completion, claim rewards or edit quests.
+See the [navigation, data format and installation guide (RU)](betterquesting.md).
 
 ## Result shape
 
