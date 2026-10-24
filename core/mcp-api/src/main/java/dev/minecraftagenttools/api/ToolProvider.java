@@ -5,8 +5,9 @@ import java.util.Map;
 
 /**
  * Startup-discovered provider. Public no-argument constructor required by ServiceLoader.
- * Descriptors and results contain only JSON-compatible maps, lists and scalar values. Calls run
- * outside Minecraft; adapters must marshal game access onto the game thread.
+ * Descriptors and results contain only JSON-compatible maps, lists and scalar values. Calls run off
+ * the game thread, optionally inside Minecraft's JVM; adapters must marshal game access onto the
+ * game thread.
  */
 public interface ToolProvider {
     String id();

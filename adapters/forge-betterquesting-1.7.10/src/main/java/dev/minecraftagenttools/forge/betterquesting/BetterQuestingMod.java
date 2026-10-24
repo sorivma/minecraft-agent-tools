@@ -57,6 +57,7 @@ public final class BetterQuestingMod {
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) throws java.io.IOException {
         reader = new BqReader(revision::get);
+        BqClient.active = new BqClient(reader);
         bridge = new GameBridge(port, token, BqTools::validate, reader::call);
         FMLCommonHandler.instance().bus().register(this);
         MinecraftForge.EVENT_BUS.register(this);

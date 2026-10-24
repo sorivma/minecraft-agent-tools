@@ -34,7 +34,7 @@ public final class BridgeClient {
                                     new InputStreamReader(
                                             socket.getInputStream(), StandardCharsets.UTF_8)));
             if (line == null) throw new IOException("Bridge closed connection");
-            return gson.fromJson(JsonParser.parseString(line).getAsJsonObject(), Map.class);
+            return gson.fromJson(new JsonParser().parse(line).getAsJsonObject(), Map.class);
         }
     }
 }

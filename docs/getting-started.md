@@ -35,6 +35,14 @@ These tasks build and test artifacts; they do not start the game or a live MCP
 endpoint. No neighboring project is required. Linux and Windows are configured
 in CI; macOS is not part of the CI matrix.
 
+## MCP inside Minecraft
+
+Install the Java 8 MCP host mod and connect Codex to `http://127.0.0.1:25581/mcp`.
+The endpoint lives in Minecraft's JVM and disappears with the game, even on a crash.
+Provider JARs go in `config/minecraftagenttools/plugins/`.
+See the [embedded MCP guide](embedded-mcp.md) for installation and credentials.
+The external `core.jar` installation below remains an optional stdio alternative.
+
 ## Choose integrations
 
 The complete build produces this layout (version suffixes omitted for readability):
@@ -49,7 +57,8 @@ build/bundle/
 │   ├── schematica-tools.jar
 │   └── betterquesting-tools.jar
 ├── forge/
-│   └── minecraft-agent-tools-forge-1.7.10-*.jar
+│   ├── minecraft-agent-tools-forge-1.7.10-*.jar
+│   └── minecraft-agent-tools-mcp-forge-1.7.10-*.jar
 ├── client-mods/
 │   ├── minecraft-agent-tools-nei-forge-1.7.10-*.jar
 │   ├── minecraft-agent-tools-schematica-forge-1.7.10-*.jar
@@ -81,7 +90,7 @@ has been verified in a live game. Install third-party mods and their dependencie
 separately. The vanilla observation adapter does not require a client mod.
 Do not put the NEI, Schematica or BetterQuesting adapters on a dedicated server.
 
-## Connect an MCP client
+## Optional external stdio client
 
 1. Start the game/server with the chosen adapter. It generates its configuration
    under the game's `config/` directory.
@@ -146,17 +155,21 @@ Schematica or BetterQuesting. Rediscover after a world transition or restart.
 
 ## Optional Harness widgets
 
-The core, providers and Forge adapters are standalone. Only the optional chat
-widget extension needs a separately built Harness dev JAR with
+The core, providers and Forge adapters are standalone. The optional chat
+widget extensions need a separately built Harness dev JAR with
 `WidgetCanvas.custom(...)` support:
 
 ```sh
 ./gradlew build "-PharnessApiJar=/absolute/path/to/harness-dev.jar"
 ```
 
-This explicitly includes `harness-schematica-1.7.10` and adds its output to
-`build/bundle/harness-mods/`. Install it on the client alongside Harness and the
-Schematica adapter. The build never looks up or builds a sibling checkout.
+The projects `harness-schematica-1.7.10` and `harness-betterquesting-1.7.10` always
+appear in Gradle. This property enables their Java/Forge build and adds both JARs
+to `build/bundle/harness-mods/`. Sources live in `integrations/harness/`.
+Install the desired widget JARs on the client alongside Harness and their respective
+Schematica/BetterQuesting adapters. The build never looks up or builds a sibling checkout.
+Without the property no widget JARs are built or bundled. For IDE Java support,
+provide the property during Gradle import (for example in personal `~/.gradle/gradle.properties`).
 In PowerShell, use `.\gradlew.bat` and keep the entire `-P...` argument quoted.
 Saved-plan restoration currently uses an explicit Harness widget callback;
 without widgets, exported JSON can be resubmitted as a new plan with a fresh scope.

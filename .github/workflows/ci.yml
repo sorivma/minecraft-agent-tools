@@ -47,5 +47,6 @@ jobs:
             core/*/build/reports/tests/
             tools/*/build/reports/tests/
             adapters/*/build/reports/tests/
+            integrations/*/*/build/reports/tests/
           if-no-files-found: warn
           retention-days: 14

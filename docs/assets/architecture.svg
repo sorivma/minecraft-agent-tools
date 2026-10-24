@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="480" viewBox="0 0 1200 480" role="img" aria-labelledby="title desc">
   <title id="title">Agent to world: a block-by-block architecture</title>
-  <desc id="desc">Three voxel islands connected by redstone-like paths. An MCP client sends stdio requests to a Java 21 core with removable provider JARs. Token-authenticated loopback TCP reaches Java 8 Forge adapters, which queue work and validate world scope on the game thread.</desc>
+  <desc id="desc">An MCP client connects by HTTP to a Java 8 MCP host and removable providers inside Minecraft's JVM. Internal authenticated bridges queue work and validate scope on the game thread. The endpoint ends with Minecraft.</desc>
   <defs>
     <pattern id="dirt" width="32" height="32" patternUnits="userSpaceOnUse">
       <rect width="32" height="32" fill="#684630"/>
@@ -42,7 +42,7 @@
     <text x="40" y="40" fill="#c1c9b9" font-size="13" letter-spacing="2">AGENT → BRIDGE → WORLD</text>
     <text x="1160" y="40" text-anchor="end" fill="#7f928c" font-size="12">FORGE 1.7.10</text>
     <text x="68" y="96" fill="#a6c779" font-size="16" font-weight="700">01 / MCP CLIENT</text>
-    <text x="452" y="96" fill="#edbf68" font-size="16" font-weight="700">02 / JAVA 21</text>
+    <text x="452" y="96" fill="#edbf68" font-size="16" font-weight="700">02 / JAVA 8 HOST</text>
     <text x="890" y="96" fill="#a6c779" font-size="16" font-weight="700">03 / JAVA 8</text>
   </g>
   <!-- Redstone paths cross process boundaries; square steps replace UI arrows. -->
@@ -55,7 +55,7 @@
     <path d="M855 195L871 211L855 227" stroke="#f5a368" stroke-width="4"/>
   </g>
   <g font-family="Consolas, 'Liberation Mono', monospace" font-size="13" text-anchor="middle">
-    <text x="335" y="176" fill="#e6d6b6">MCP / stdio</text>
+    <text x="335" y="176" fill="#e6d6b6">MCP / HTTP</text>
     <text x="773" y="160" fill="#e6d6b6">loopback TCP</text>
     <text x="773" y="180" fill="#d49a69">+ private token</text>
   </g>
@@ -119,7 +119,7 @@
       <text x="48" y="389">Chooses and calls tools</text>
       <text x="48" y="411">Receives structured context</text>
       <text x="444" y="389">Discover → validate → route</text>
-      <text x="444" y="411">MC / NEI / GT / Schematica</text>
+      <text x="444" y="411">Inside Minecraft's JVM</text>
       <text x="886" y="389">Queue → scope check → tick</text>
       <text x="886" y="411">Server or client game thread</text>
     </g>

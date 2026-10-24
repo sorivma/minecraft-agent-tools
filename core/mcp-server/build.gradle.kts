@@ -15,6 +15,7 @@ java { toolchain { languageVersion.set(JavaLanguageVersion.of(21)) } }
 dependencies {
     implementation(project(":bridge-protocol"))
     implementation(project(":mcp-api"))
+    implementation(project(":mcp-runtime"))
     implementation("com.google.code.gson:gson:2.11.0")
     testImplementation("junit:junit:4.13.2")
     testImplementation(project(":minecraft-tools"))

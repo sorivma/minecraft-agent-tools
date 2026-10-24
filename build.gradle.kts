@@ -5,7 +5,12 @@ plugins {
 
 spotless {
     java {
-        target("core/*/src/**/*.java", "tools/*/src/**/*.java", "adapters/*/src/**/*.java")
+        target(
+            "core/*/src/**/*.java",
+            "tools/*/src/**/*.java",
+            "adapters/*/src/**/*.java",
+            "integrations/*/*/src/**/*.java"
+        )
         googleJavaFormat("1.22.0").aosp()
         removeUnusedImports()
         trimTrailingWhitespace()
@@ -17,7 +22,8 @@ spotless {
             "gradle/*.gradle.kts",
             "core/*/build.gradle.kts",
             "tools/*/build.gradle.kts",
-            "adapters/*/build.gradle.kts"
+            "adapters/*/build.gradle.kts",
+            "integrations/*/*/build.gradle.kts"
         )
         ktfmt("0.50").kotlinlangStyle()
         trimTrailingWhitespace()
@@ -61,10 +67,20 @@ val bundle by
         dependsOn(":gregtech-tools:jar", ":forge-gregtech-1.7.10:assemble")
         dependsOn(":schematica-tools:jar", ":forge-schematica-1.7.10:assemble")
         dependsOn(":betterquesting-tools:jar", ":forge-betterquesting-1.7.10:assemble")
+        dependsOn(":forge-mcp-1.7.10:assemble")
         into(layout.buildDirectory.dir("bundle"))
         from("LICENSE", "THIRD_PARTY_NOTICES.md")
         from("docs/getting-started.md") { rename { "GETTING_STARTED.md" } }
+        from("docs/embedded-mcp.md")
         from("licenses") { into("licenses") }
+        from(
+            project(":forge-mcp-1.7.10")
+                .layout
+                .buildDirectory
+                .file("libs/minecraft-agent-tools-mcp-forge-1.7.10-${project.version}.jar")
+        ) {
+            into("forge")
+        }
         from(project(":betterquesting-tools").tasks.named("jar")) {
             into("plugins")
             rename { "betterquesting-tools.jar" }
@@ -91,14 +107,17 @@ val bundle by
         ) {
             into("client-mods")
         }
-        findProject(":harness-schematica-1.7.10")?.let { extension ->
-            dependsOn("${extension.path}:assemble")
-            from(
-                extension.layout.buildDirectory.file(
-                    "libs/minecraft-agent-tools-schematica-harness-1.7.10-${project.version}.jar"
-                )
-            ) {
-                into("harness-mods")
+        if (providers.gradleProperty("harnessApiJar").isPresent) {
+            listOf("schematica", "betterquesting").forEach { integration ->
+                val extension = project(":harness-$integration-1.7.10")
+                dependsOn("${extension.path}:assemble")
+                from(
+                    extension.layout.buildDirectory.file(
+                        "libs/minecraft-agent-tools-$integration-harness-1.7.10-${project.version}.jar"
+                    )
+                ) {
+                    into("harness-mods")
+                }
             }
         }
         from(

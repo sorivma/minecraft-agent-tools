@@ -11,7 +11,7 @@
   <a href=".github/workflows/ci.yml"><img src="https://img.shields.io/badge/CI-Linux%20%7C%20Windows-8AAE5D?style=flat-square" alt="CI настроен для Linux и Windows"></a>
   <img src="https://img.shields.io/badge/Minecraft-1.7.10-62B47A?style=flat-square" alt="Minecraft 1.7.10">
   <img src="https://img.shields.io/badge/Java-8%20%2B%2021-E7AB59?style=flat-square" alt="Java 8 и 21">
-  <img src="https://img.shields.io/badge/transport-MCP%20stdio-65CFD5?style=flat-square" alt="MCP через stdio">
+  <img src="https://img.shields.io/badge/transport-MCP%20HTTP-65CFD5?style=flat-square" alt="MCP через HTTP внутри Minecraft">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-9CA9BA?style=flat-square" alt="Лицензия MIT"></a>
 </p>
 
@@ -25,7 +25,8 @@
 Самостоятельный **MCP-сервер и адаптеры Forge 1.7.10**, через которые агент получает
 структурированное состояние игры. Пять отключаемых провайдеров подключают ванильный
 Minecraft, NotEnoughItems, GregTech, Schematica и BetterQuesting к клиенту, поддерживающему
-реализованный здесь профиль MCP stdio.
+реализованный здесь профиль MCP HTTP. Сервер работает внутри JVM Minecraft;
+внешний stdio launcher остаётся необязательным вариантом установки.
 
 **Экспериментальный проект с реализованными инструментами и изолированными тестами.**
 Проверка в игре пока частичная: зафиксированы запуск клиента GTNH и ответ
@@ -59,21 +60,22 @@ Minecraft, NotEnoughItems, GregTech, Schematica и BetterQuesting к клиен�
 | **Schematica** | 7 | Клиент со Schematica GTNH | `schematic_status` |
 | **BetterQuesting** | 8 | Клиент с BetterQuesting GTNH | `bq_status` |
 
-Каждый провайдер — отдельный JAR. Удали его из `plugins/` и перезапусти MCP,
+Каждый провайдер — отдельный JAR. Удали его из `config/minecraftagenttools/plugins/` и перезапусти Minecraft,
 чтобы убрать его инструменты. Пустой каталог плагинов допустим. В ядро не встроены
-Minecraft-инструменты; Minecraft Harness ему не нужен. Отдельно подключаемое
-расширение Harness добавляет карточки планов в игровой чат.
+Minecraft-инструменты; Minecraft Harness ему не нужен. Отдельно подключаемые
+расширения Harness из `integrations/harness/` добавляют карточки схем и квестов в игровой чат.
 
 ## Как это устроено
 
 <p align="center">
-  <img src="docs/assets/architecture.svg" alt="MCP-клиент → ядро и провайдеры Java 21 → TCP loopback с токеном → адаптер Forge Java 8 → игровой поток" width="100%">
+  <img src="docs/assets/architecture.svg" alt="MCP-клиент → HTTP → MCP-host и провайдеры Java 8 внутри Minecraft → очередь адаптера → игровой поток" width="100%">
 </p>
 
-Современная инфраструктура агента вынесена за пределы старого игрового окружения:
+Minecraft владеет MCP-сервером и его жизненным циклом:
 
-- **Две версии Java.** MCP-процесс работает на Java 21; контракты и адаптеры Forge —
-  на Java 8. В JAR игрового мода не попадают MCP-ядро и современный Gson.
+- **Встроенный runtime Java 8.** MCP-host работает внутри Forge с Gson Minecraft.
+  Codex подключается по HTTP и не запускает MCP-процесс. Закрытие или аварийное
+  завершение Minecraft удаляет endpoint. Внешний stdio launcher работает на Java 21.
 - **Явное разделение потоков.** Сетевые потоки обслуживают транспорт. Игровые запросы
   исполняются на нужном тике, с ограниченной очередью и сроком ожидания.
 - **Привязка к миру.** Проверки сессии и измерения отклоняют устаревшие запросы после
@@ -86,7 +88,7 @@ Minecraft-инструменты; Minecraft Harness ему не нужен. От
 
 ## Быстрый старт
 
-Нужны **JDK 21** для Gradle и MCP, а также Forge 1.7.10 для игры.
+Нужны **JDK 21** для Gradle и Forge 1.7.10 для игры.
 Адаптеры собираются Java 8 toolchain. Первая сборка скачивает зависимости
 и инструменты старого Forge, поэтому ей нужен доступ в интернет.
 
@@ -100,12 +102,11 @@ cd minecraft-agent-tools
 Перед сборкой укажи **JDK 21** в `JAVA_HOME`. Соседние проекты не нужны.
 
 1. Готовый набор появится в `build/bundle/`.
-2. Для ванильных наблюдений положи JAR из `forge/` в `mods/` сервера.
-   Оставь `plugins/minecraft-tools.jar`, убери из набора ненужные провайдеры.
-3. Запусти игру/сервер самостоятельно. Скопируй `bridge.token` из
-   `config/minecraftagenttools.cfg` в приватное окружение своего MCP-клиента.
-4. Настрой запуск Java 21 с `-jar /absolute/path/to/bundle/core.jar`.
-   Задай `MAT_TOKEN` и, если менял порт, `MAT_PORT` (по умолчанию `25576`).
+2. Положи MCP-host и адаптер Minecraft из `forge/` в `mods/`.
+   Нужные провайдеры скопируй в `config/minecraftagenttools/plugins/`.
+3. Запусти Minecraft самостоятельно. Прочитай `http.token` из `config/minecraftagenttoolsmcp.cfg`.
+4. Подключи клиент к `http://127.0.0.1:25581/mcp` с этим Bearer-токеном.
+   См. [настройку встроенного MCP](docs/embedded-mcp.md).
 5. Переподключи MCP-клиент. Попроси агента вызвать `list_sessions`, а затем
    `observe` с полученными сессией, измерением и UUID игрока.
 
@@ -120,7 +121,7 @@ loopback. Токен даёт административный доступ к �
 
 | Реализовано | Ограничения |
 | --- | --- |
-| Инициализация MCP, список и вызов инструментов через stdio | Поддерживается определённый профиль, не все возможности MCP. |
+| Инициализация MCP, список и вызов инструментов через HTTP или stdio | Поддерживается определённый профиль, не все возможности MCP. |
 | Наблюдения, рецепты, временные метки и призрачные планы | Полная проверка на живых серверах и модпаках ещё не завершена. |
 | Сессии, ограниченные сканирования и пагинация | Страницы снимаются отдельно и не составляют атомарный снимок мира. |
 | Чтение GregTech и StructureLib | Нет универсального планировщика мультиблоков и симуляции всех аддонов. |

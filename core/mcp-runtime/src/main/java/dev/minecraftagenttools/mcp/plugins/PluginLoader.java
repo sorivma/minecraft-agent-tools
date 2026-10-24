@@ -1,11 +1,11 @@
 package dev.minecraftagenttools.mcp.plugins;
 
 import dev.minecraftagenttools.api.ToolProvider;
-import dev.minecraftagenttools.mcp.Main;
 import java.io.*;
 import java.net.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /** Loads provider services exclusively from JARs in a startup directory, not the core classpath. */
@@ -28,7 +28,7 @@ public final class PluginLoader implements Closeable {
                                                                 .toString()
                                                                 .endsWith(".jar"))
                                 .sorted()
-                                .toList()) jars.add(path.toUri().toURL());
+                                .collect(Collectors.toList())) jars.add(path.toUri().toURL());
             }
         }
         loader =
@@ -61,7 +61,12 @@ public final class PluginLoader implements Closeable {
     /** For a packaged JAR, use plugins beside the core, or beside lib in installDist. */
     public static Path defaultDirectory() throws URISyntaxException {
         Path location =
-                Paths.get(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+                Paths.get(
+                        PluginLoader.class
+                                .getProtectionDomain()
+                                .getCodeSource()
+                                .getLocation()
+                                .toURI());
         if (Files.isRegularFile(location)) {
             Path parent = location.getParent();
             if (parent.getFileName().toString().equals("lib")) parent = parent.getParent();

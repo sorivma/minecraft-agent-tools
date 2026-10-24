@@ -1,8 +1,9 @@
 # Architecture
 
-Minecraft Agent Tools connects a modern MCP client to a legacy Forge runtime
-without putting the MCP stack inside the game. Its core has no built-in tools:
-provider JARs own the integration contracts and routing.
+Minecraft Agent Tools hosts MCP inside the Forge JVM through a Java 8 HTTP runtime.
+Codex connects to the game instead of owning an MCP subprocess. Its core has no
+built-in tools: provider JARs own integration contracts and routing. A Java 21
+stdio launcher remains optional. See the [embedded setup](embedded-mcp.md).
 
 ![Block-by-block process diagram](assets/architecture.svg)
 
@@ -12,21 +13,25 @@ provider JARs own the integration contracts and routing.
 | --- | --- | --- |
 | `core/bridge-protocol` | 8 | Framing, detached data, sessions, scans, snapshots and markers; no external runtime dependencies. |
 | `core/mcp-api` | 8 | `ToolProvider` and `ToolContext` SPI; no Minecraft, Gson or MCP SDK. |
-| `core/mcp-server` | 21 | JSON-RPC/MCP lifecycle, plugin discovery, routing and lazy bridge connections. |
+| `core/mcp-runtime` | 8 | JSON-RPC/MCP sessions, HTTP endpoint, plugin discovery and bridge connections; uses the host's Gson. |
+| `core/mcp-server` | 21 | Optional external stdio launcher and self-contained distribution. |
 | `core/game-bridge` | 8 | Shared bounded loopback transport for game adapters; Minecraft supplies Gson at runtime. |
 | `tools/*-tools` | 8 | Integration contracts and provider implementations, in separate packages. |
 | `adapters/forge-*` | 8 | Game/mod API access on the appropriate server or client thread. |
-| `adapters/harness-schematica-1.7.10` | 8 | Optional chat widgets, included only when a Harness API JAR is explicitly supplied. |
+| `adapters/forge-mcp-1.7.10` | 8 | Owns the MCP HTTP endpoint inside Minecraft and loads providers from config/. |
+| `integrations/harness/schematica` | 8 | Optional schematic chat widgets, compiled only with an explicit Harness API JAR. |
+| `integrations/harness/betterquesting` | 8 | Optional live quest cards and explicit quest-book navigation. |
 
 Java 8 contracts can be shared with Forge without importing the external process's
-implementation. The core uses Gson 2.11.0; game adapters use Minecraft's Gson.
-Forge artifacts include selected contract classes, not entire provider JARs.
+implementation. The external launcher uses Gson 2.11.0; the embedded runtime and
+game adapters use Minecraft's Gson 2.2.4. Game adapters include selected contracts;
+the MCP host includes the runtime and SPI. Provider JARs remain separate files.
 The build's `verifyBundle` task checks the resulting archives, including class
 versions and forbidden classes.
 
 ## A request across the boundary
 
-1. The MCP client initializes the endpoint and discovers tools.
+1. Minecraft initializes its host mod; the MCP client connects by HTTP and discovers tools.
 2. The core looks up the owning provider. That provider validates the arguments.
 3. `ToolContext.callBridge` resolves the named bridge's environment settings on
    demand and opens an authenticated loopback request.
@@ -83,18 +88,28 @@ They are never interpreted as commands to mutate the world.
 Authoring changes ghost plans, not real blocks. Plans have independent IDs and
 revisions, materials and optional groups. Client persistence uses a separate ordered
 I/O worker; game objects and preview renderers remain on their owning threads.
-Export writes `.schematic` and source JSON from the external MCP process.
+Export writes `.schematic` and source JSON from the provider's worker thread.
 
-Harness widgets are a separate opt-in extension. Their buttons invoke explicit
+Harness widgets live in `integrations/harness/`, in separate Gradle projects/JARs.
+The projects are always discoverable; their Java/Forge tasks and bundle artifacts
+are enabled by `harnessApiJar`. Without it they expose only base lifecycle tasks.
+The standalone core and game adapters never acquire a Harness dependency.
+Their buttons invoke explicit
 Java callbacks scoped to the current plan and session. Old callbacks do not
 become valid again after reconnecting; saved plans require explicit restoration.
 The [Schematica guide](schematica.md) documents persistence and renderer limits.
 
+Quest cards use the BetterQuesting adapter's `BqClient` UI seam on the client thread,
+without a socket round trip or whole-quest NBT serialization during rendering.
+Snapshots contain bounded task/reward/relation pages and the current scope's progress.
+Opening the native quest book revalidates the scope at click time; saved chat cards
+never automatically reconnect to a new world. See the [quest guide](betterquesting.md).
+
 ## MCP profile and verification
 
-The implemented profile is MCP `2025-11-25` over stdio:
+The implemented profile is MCP `2025-11-25` over Streamable HTTP or optional stdio:
 `initialize`, `notifications/initialized`, `ping`, `tools/list` and `tools/call`.
-Resources, prompts, HTTP transport and other optional MCP capabilities are not
+Resources, prompts, SSE and other optional MCP capabilities are not
 implemented. The core implements this profile directly rather than depending on
 an MCP SDK.
 
@@ -103,6 +118,6 @@ bounded transport, contracts and isolated adapter behavior. CI also inspects
 distribution JARs. Game rendering, real mod compatibility and complete user
 workflows still require [runtime validation](startup-check.md).
 
-The main tradeoffs are explicit: separate processes avoid legacy dependency
-conflicts; per-integration adapters avoid mandatory mod dependencies; bounded
+The embedded runtime targets the legacy JVM and Gson; its lifecycle belongs to
+Minecraft. Per-integration adapters avoid mandatory mod dependencies; bounded
 queries protect responsiveness but cannot make arbitrary third-party APIs fast.

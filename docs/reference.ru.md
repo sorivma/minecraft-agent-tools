@@ -3,7 +3,9 @@
 [Главная страница](../README.ru.md) · [Quick start (EN)](getting-started.md) · [Architecture (EN)](architecture.md)
 
 Серверный мод Forge 1.7.10 для передачи агенту состояния ванильного Minecraft через MCP.
-Самостоятельный проект без зависимости от Minecraft Harness. Для серверных наблюдений
+Самостоятельный проект без зависимости от Minecraft Harness. Основная установка использует
+MCP-host внутри JVM Minecraft и подключение клиента по HTTP; см. [настройку](embedded-mcp.md).
+Для серверных наблюдений
 клиентский мод не требуется; необязательный доступ к NEI использует отдельный клиентский мод.
 
 ## Статус
@@ -37,14 +39,16 @@
 
 ## Архитектура
 
-`агент → core.jar (Java 21) → plugins/* → TCP loopback → Forge (Java 8) → серверный игровой поток`
+`агент → HTTP → MCP-host + plugins (Java 8, JVM Minecraft) → внутренний bridge → игровой поток`
 
 - `bridge-protocol`: Java 8, фрейминг, сессии, границы сканирования,
   сравнение снимков. Нет зависимостей от Minecraft, MCP SDK или JSON-библиотек.
 - `mcp-api`: Java 8, интерфейсы `ToolProvider` и `ToolContext`, без Minecraft, Gson и MCP SDK.
-- `mcp-server`: Java 21, ядро JSON-RPC/MCP, загрузка JAR, маршрутизация и Gson 2.11.0.
-  Не зависит от Minecraft-провайдера во время работы. Реализован профиль MCP 2025-11-25:
+- `mcp-runtime`: Java 8, ядро JSON-RPC/MCP, HTTP endpoint, загрузка JAR и маршрутизация.
+  Использует Gson 2.2.4 из Minecraft. Реализован профиль MCP 2025-11-25:
   initialize, notifications/initialized, ping, tools/list, tools/call.
+- `forge-mcp-1.7.10`: мод, которому принадлежит HTTP endpoint. Не включает провайдеры в свой JAR.
+- `mcp-server`: необязательный внешний stdio launcher Java 21 с Gson 2.11.0.
 - `minecraft-tools`: Java 8, отдельный провайдер: описания и проверка Minecraft-инструментов,
   инструкции агенту и маршрутизация в Minecraft-мост. Зависит от протокола и `mcp-api`.
 - `forge-1.7.10`: Java 8, серверный адаптер. Использует Gson, уже поставляемый Minecraft;
@@ -71,10 +75,11 @@
 ### Каталоги модулей
 
 ```text
-core/       bridge-protocol, mcp-api, mcp-server, game-bridge
-tools/      minecraft-tools, nei-tools, gregtech-tools, schematica-tools
+core/       bridge-protocol, mcp-api, mcp-runtime, mcp-server, game-bridge
+tools/      minecraft-tools, nei-tools, gregtech-tools, schematica-tools, betterquesting-tools
 adapters/   forge-1.7.10, forge-nei-1.7.10, forge-gregtech-1.7.10,
-            forge-schematica-1.7.10, harness-schematica-1.7.10
+            forge-schematica-1.7.10, forge-betterquesting-1.7.10, forge-mcp-1.7.10
+integrations/harness/  schematica, betterquesting
 ```
 
 Это группы каталогов; каждый модуль остаётся отдельным Gradle-проектом.
@@ -113,14 +118,15 @@ Gradle Kotlin DSL — ktfmt. Версии форматтеров закрепл�
 ### Команды сборки
 
 Gradle Wrapper 8.8 запускается на JDK 21 (`JAVA_HOME`), адаптер и протокол компилируются Java 8 toolchain.
-Обычная сборка самостоятельна. Расширение `harness-schematica-1.7.10` включается только
+Обычная сборка самостоятельна. Gradle-проекты `harness-schematica-1.7.10` и
+`harness-betterquesting-1.7.10` видимы всегда; сборка их Java-кода включается только
 с явным `-PharnessApiJar=/path/to/harness-dev.jar`; см. [инструкцию](schematica.md).
 
 ```powershell
 .\gradlew.bat build :mcp-server:installDist
 ```
 
-Набор содержит все четыре провайдера и соответствующие адаптеры. Ниже показаны базовые артефакты;
+Набор содержит все пять провайдеров и соответствующие адаптеры. Ниже показаны базовые артефакты;
 полный состав и выбор модулей — в [инструкции установки](getting-started.md).
 
 Результаты:

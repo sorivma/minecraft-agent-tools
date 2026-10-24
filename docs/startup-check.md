@@ -34,6 +34,10 @@ record. Treat it as limited historical evidence, not a release certification.
 - BetterQuesting chapter ordering, quest/task/reward data, party/repeat progress and world transitions;
   see the [quest validation steps](betterquesting.md#проверка-пользователем-в-gtnh). This integration
   has isolated tests and a compile baseline, with no recorded in-game verification.
+- Harness BetterQuesting card layout, page navigation and explicit native quest-book opening;
+  isolated widget tests do not establish native UI behavior in the target modpack.
+- Embedded Java 8 HTTP MCP host in GTNH. Transport and forced fixture-JVM termination
+  are tested in isolation; no native game startup for this host has been recorded.
 
 The [technical guide](reference.ru.md#проверка-пользователем-на-выделенном-сервере)
 and [Schematica guide](schematica.md#ограничения-и-проверка) contain detailed scenarios.

@@ -13,7 +13,7 @@ val verifyBundle by
             val directory = bundleDir.get().asFile
             val jars = directory.walkTopDown().filter { it.extension == "jar" }.toList()
             val expected =
-                setOf(
+                mutableSetOf(
                     "core.jar",
                     "plugins/minecraft-tools.jar",
                     "plugins/nei-tools.jar",
@@ -22,10 +22,26 @@ val verifyBundle by
                     "plugins/betterquesting-tools.jar",
                     "client-mods/minecraft-agent-tools-betterquesting-forge-1.7.10-${project.version}.jar",
                     "forge/minecraft-agent-tools-forge-1.7.10-${project.version}.jar",
+                    "forge/minecraft-agent-tools-mcp-forge-1.7.10-${project.version}.jar",
                     "client-mods/minecraft-agent-tools-nei-forge-1.7.10-${project.version}.jar",
                     "client-mods/minecraft-agent-tools-schematica-forge-1.7.10-${project.version}.jar",
                     "gregtech-mods/minecraft-agent-tools-gregtech-forge-1.7.10-${project.version}.jar"
                 )
+            if (providers.gradleProperty("harnessApiJar").isPresent) {
+                listOf("schematica", "betterquesting").forEach { integration ->
+                    expected.add(
+                        "harness-mods/minecraft-agent-tools-$integration-harness-1.7.10-${project.version}.jar"
+                    )
+                }
+            } else {
+                check(
+                    jars.none {
+                        it.relativeTo(directory).invariantSeparatorsPath.startsWith("harness-mods/")
+                    }
+                ) {
+                    "Standalone bundle must not contain Harness extensions"
+                }
+            }
             check(
                 jars.map { it.relativeTo(directory).invariantSeparatorsPath }.containsAll(expected)
             ) {
@@ -36,9 +52,15 @@ val verifyBundle by
                 val relative = file.relativeTo(directory).invariantSeparatorsPath
                 val core = relative == "core.jar"
                 val provider = relative.startsWith("plugins/")
+                val embeddedHost = relative.startsWith("forge/minecraft-agent-tools-mcp-forge-")
                 ZipFile(file).use { jar ->
                     val entries = jar.entries().asSequence().toList()
                     val classes = entries.filter { it.name.endsWith(".class") }
+                    if (embeddedHost) {
+                        check(jar.getEntry("dev/minecraftagenttools/mcp/Main.class") == null) {
+                            "$relative embeds the external stdio launcher"
+                        }
+                    }
                     check(classes.isNotEmpty()) { "$relative has no classes" }
                     check(jar.getEntry("META-INF/LICENSE-minecraft-agent-tools") != null) {
                         "$relative is missing the project license"
@@ -76,7 +98,9 @@ val verifyBundle by
                             check(name.startsWith("dev/minecraftagenttools/")) {
                                 "$relative bundles a third-party class: $name"
                             }
-                            check(!name.startsWith("dev/minecraftagenttools/mcp/")) {
+                            check(
+                                embeddedHost || !name.startsWith("dev/minecraftagenttools/mcp/")
+                            ) {
                                 "$relative embeds MCP core code: $name"
                             }
                             if (provider) {
@@ -86,7 +110,8 @@ val verifyBundle by
                             } else {
                                 check(
                                     !name.contains("/provider/") &&
-                                        !name.startsWith("dev/minecraftagenttools/api/")
+                                        (embeddedHost ||
+                                            !name.startsWith("dev/minecraftagenttools/api/"))
                                 ) {
                                     "$relative embeds MCP provider code: $name"
                                 }

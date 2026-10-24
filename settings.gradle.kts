@@ -12,7 +12,7 @@ rootProject.name = "minecraft-agent-tools"
 // Keep Gradle project paths stable while grouping their directories by responsibility.
 val moduleGroups =
     mapOf(
-        "core" to listOf("bridge-protocol", "mcp-api", "mcp-server", "game-bridge"),
+        "core" to listOf("bridge-protocol", "mcp-api", "mcp-runtime", "mcp-server", "game-bridge"),
         "tools" to
             listOf(
                 "minecraft-tools",
@@ -24,6 +24,7 @@ val moduleGroups =
         "adapters" to
             listOf(
                 "forge-1.7.10",
+                "forge-mcp-1.7.10",
                 "forge-nei-1.7.10",
                 "forge-gregtech-1.7.10",
                 "forge-schematica-1.7.10",
@@ -38,12 +39,16 @@ moduleGroups.forEach { (directory, modules) ->
     }
 }
 
-// An external UI extension is opt-in: a fresh clone never needs a sibling checkout.
+// Always expose integration projects to Gradle/IDEs; compiling their JARs remains opt-in.
 providers.gradleProperty("harnessApiJar").orNull?.let { path ->
     require(path.isNotBlank() && file(path).isFile) {
         "harnessApiJar must point to an existing Harness dev JAR. " +
             "Omit -PharnessApiJar to build the standalone project."
     }
-    include("harness-schematica-1.7.10")
-    project(":harness-schematica-1.7.10").projectDir = file("adapters/harness-schematica-1.7.10")
+}
+
+listOf("schematica", "betterquesting").forEach { integration ->
+    val module = "harness-$integration-1.7.10"
+    include(module)
+    project(":$module").projectDir = file("integrations/harness/$integration")
 }

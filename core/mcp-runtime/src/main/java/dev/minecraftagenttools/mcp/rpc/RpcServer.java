@@ -7,7 +7,7 @@ import dev.minecraftagenttools.api.ToolContext;
 import dev.minecraftagenttools.mcp.plugins.ToolRegistry;
 import java.util.*;
 
-/** MCP 2025-11-25 stdio profile. No stdout logging. */
+/** Transport-independent MCP 2025-11-25 session. No game access or stdout logging. */
 public final class RpcServer {
     private final ToolRegistry providers;
     private final ToolContext context;
@@ -24,7 +24,7 @@ public final class RpcServer {
     public JsonObject handle(String line) {
         JsonObject req;
         try {
-            JsonElement parsed = JsonParser.parseString(line);
+            JsonElement parsed = new JsonParser().parse(line);
             if (!parsed.isJsonObject())
                 return error(JsonNull.INSTANCE, -32600, "Expected request object");
             req = parsed.getAsJsonObject();

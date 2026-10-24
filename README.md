@@ -11,7 +11,7 @@ Inspect the world. Explore recipes. Plan what to build next.</p>
   <a href=".github/workflows/ci.yml"><img src="https://img.shields.io/badge/CI-Linux%20%7C%20Windows-8AAE5D?style=flat-square" alt="CI configured for Linux and Windows"></a>
   <img src="https://img.shields.io/badge/Minecraft-1.7.10-62B47A?style=flat-square" alt="Minecraft 1.7.10">
   <img src="https://img.shields.io/badge/Java-8%20%2B%2021-E7AB59?style=flat-square" alt="Java 8 and 21">
-  <img src="https://img.shields.io/badge/transport-MCP%20stdio-65CFD5?style=flat-square" alt="MCP over stdio">
+  <img src="https://img.shields.io/badge/transport-MCP%20HTTP-65CFD5?style=flat-square" alt="MCP over HTTP inside Minecraft">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-9CA9BA?style=flat-square" alt="MIT license"></a>
 </p>
 
@@ -25,7 +25,7 @@ Inspect the world. Explore recipes. Plan what to build next.</p>
 An independent **MCP server and Forge 1.7.10 adapters** that expose structured game
 state to an AI agent. Five removable providers connect vanilla Minecraft,
 NotEnoughItems, GregTech, Schematica and BetterQuesting to any client supporting this project's MCP
-stdio profile.
+HTTP profile, with the endpoint hosted inside Minecraft's JVM. An external stdio launcher is optional.
 
 **Experimental, with implemented tools and isolated tests.** In-game validation is
 still partial: a recorded GTNH client startup and `schematic_status` response do
@@ -58,21 +58,22 @@ provide guidance; autonomous movement and building are outside the current scope
 | **Schematica** | 7 | Client with Schematica GTNH | `schematic_status` |
 | **BetterQuesting** | 8 | Client with BetterQuesting GTNH | `bq_status` |
 
-Each provider lives in its own JAR. Remove it from `plugins/` and restart the MCP
-process to remove its tools. An empty plugin directory is valid. The core has no
-built-in Minecraft tools and does not require Minecraft Harness. A separately
-opted-in Harness extension adds per-plan chat widgets.
+Each provider lives in its own JAR. Remove it from `config/minecraftagenttools/plugins/`
+and restart Minecraft to remove its tools. An empty plugin directory is valid. The core has no
+built-in Minecraft tools and does not require Minecraft Harness. Separately
+opted-in Harness integrations add schematic and quest chat widgets from `integrations/harness/`.
 
 ## How it works
 
 <p align="center">
-  <img src="docs/assets/architecture.svg" alt="MCP client to Java 21 core and provider JARs, then authenticated loopback TCP to Java 8 Forge adapters and the game thread" width="100%">
+  <img src="docs/assets/architecture.svg" alt="MCP client over HTTP to the Java 8 host and providers inside Minecraft, then bridge queues to the game thread" width="100%">
 </p>
 
-The design keeps modern agent infrastructure outside the legacy game runtime:
+The game owns its MCP endpoint and its lifetime:
 
-- **Two Java runtimes.** Java 21 runs the MCP process; Java 8 contracts and adapters
-  run inside Forge. The Forge JARs never embed the MCP core or modern Gson.
+- **Embedded Java 8 runtime.** The MCP host runs in Forge with Minecraft's Gson.
+  Codex connects by HTTP and launches no MCP process. Closing or killing Minecraft
+  removes the endpoint. The optional external stdio launcher runs on Java 21.
 - **Explicit thread ownership.** Socket workers handle transport. Queued game reads
   execute on the appropriate tick thread, with bounded queues and expiry.
 - **World-scoped operations.** Session and dimension checks reject stale requests
@@ -85,7 +86,7 @@ tradeoffs and extension interface.
 
 ## Quick start
 
-**Prerequisites:** JDK 21 to run Gradle and the MCP core; Forge 1.7.10 for the game.
+**Prerequisites:** JDK 21 to run Gradle; Forge 1.7.10 for the game.
 Gradle uses a Java 8 toolchain for the adapters. The first build needs internet
 access to download dependencies and the legacy Forge toolchain.
 
@@ -99,12 +100,11 @@ On Windows PowerShell, use `.\gradlew.bat build :mcp-server:installDist`.
 Set `JAVA_HOME` to a **JDK 21** before building. No neighboring checkout is required.
 
 1. Find the assembled distribution in `build/bundle/`.
-2. For vanilla observations, install the JAR from `forge/` into the server's `mods/`.
-   Keep `plugins/minecraft-tools.jar`; remove unused provider JARs from this distribution.
-3. Start the game/server yourself. Copy `bridge.token` from
-   `config/minecraftagenttools.cfg` into your MCP client's private environment.
-4. Configure the client to run Java 21 with `-jar /absolute/path/to/bundle/core.jar`.
-   Set `MAT_TOKEN` and, if changed, `MAT_PORT` (default `25576`).
+2. Install the MCP host and Minecraft adapter JARs from `forge/` into `mods/`.
+   Copy desired providers to `config/minecraftagenttools/plugins/`.
+3. Start Minecraft yourself; read `http.token` from `config/minecraftagenttoolsmcp.cfg`.
+4. Connect the client to `http://127.0.0.1:25581/mcp` with that Bearer token.
+   See the [embedded MCP configuration](docs/embedded-mcp.md).
 5. Reconnect the MCP client and ask it to call `list_sessions`, then `observe`
    using the returned session, dimension and player UUID.
 
@@ -118,7 +118,7 @@ bundle layout, optional integrations and troubleshooting.
 
 | Available in the code | Still requires care or validation |
 | --- | --- |
-| MCP initialization, tool discovery and calls over stdio | This is a focused MCP profile, not every MCP feature. |
+| MCP initialization, discovery and calls over HTTP or optional stdio | This is a focused MCP profile, not every MCP feature. |
 | Observation, recipes, temporary markers and ghost plans | End-to-end checks on actual servers and modpacks remain partial. |
 | Session checks, bounded scans and pagination | Pages are separate observations, not an atomic snapshot of the world. |
 | GregTech and StructureLib inspection | No complete multiblock planner or simulation of arbitrary addons. |

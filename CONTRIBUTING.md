@@ -16,8 +16,12 @@ build downloads the legacy Forge toolchain and needs network access.
 
 On Windows, use `.\gradlew.bat` with the same tasks. This runs isolated tests,
 format checks and distribution checks. It does not start Minecraft or a live MCP server.
-The optional Harness widget is excluded unless `-PharnessApiJar=/path/to/harness-dev.jar`
-is supplied. Do not introduce an implicit dependency on a neighboring checkout.
+The Java 8 `mcp-runtime`/Forge host implements the embedded HTTP endpoint. Its isolated
+tests use fixture JVMs, including forced termination; see [embedded setup](docs/embedded-mcp.md).
+The optional projects in `integrations/harness/` are always listed by Gradle.
+Their Java/Forge tasks and widget JARs are enabled only when
+`-PharnessApiJar=/path/to/harness-dev.jar` is supplied. Do not introduce an implicit
+dependency on a neighboring checkout.
 
 ```sh
 ./gradlew spotlessApply       # Google Java Format (AOSP) and ktfmt

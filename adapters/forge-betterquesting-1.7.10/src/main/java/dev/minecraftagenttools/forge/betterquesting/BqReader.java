@@ -112,11 +112,9 @@ final class BqReader {
                             "Sync completion/freshness is not exposed by BQ; ready means a nonempty local database only.",
                             "Visibility can be unknown until the quest cache arrives. Hidden client-loaded quests are browsable.",
                             "No submissions, detection, claims, edits or GUI actions. Reward claimability is not probed."));
-        if (session == null
-                || !session.equals(string(args, "session"))
-                || state.dimension
-                        != integer(args, "dimension", 0, Integer.MIN_VALUE, Integer.MAX_VALUE))
-            throw new IllegalArgumentException("Stale BetterQuesting scope; call bq_status");
+        requireScope(
+                string(args, "session"),
+                integer(args, "dimension", 0, Integer.MIN_VALUE, Integer.MAX_VALUE));
         if (args.containsKey("revision")
                 && rev != integer(args, "revision", 0, 0, Integer.MAX_VALUE))
             throw new IllegalArgumentException(
@@ -162,6 +160,140 @@ final class BqReader {
                 System.currentTimeMillis(),
                 "result",
                 result);
+    }
+
+    private void requireScope(String expectedSession, int dimension) {
+        if (session == null || !session.equals(expectedSession) || state.dimension != dimension)
+            throw new IllegalArgumentException("Stale BetterQuesting scope; call bq_status");
+    }
+
+    int widgetRevision() {
+        return revision.getAsInt();
+    }
+
+    /** Also used immediately before explicit UI callbacks; never rebind an old card. */
+    void requireWidgetQuest(String expectedSession, int dimension, UUID questId) {
+        tick();
+        requireScope(expectedSession, dimension);
+        requireQuest(questId);
+    }
+
+    BigItemStack widgetIcon(String expectedSession, int dimension, UUID questId) {
+        requireWidgetQuest(expectedSession, dimension, questId);
+        return requireQuest(questId).getProperty(NativeProps.ICON);
+    }
+
+    Map<String, Object> widgetTask(
+            String expectedSession, int dimension, UUID questId, int taskId, int offset) {
+        requireWidgetQuest(expectedSession, dimension, questId);
+        ITask task = requireQuest(questId).getTasks().getValue(taskId);
+        if (task == null) throw new IllegalArgumentException("Quest task is no longer available");
+        int rev = revision.getAsInt();
+        Map<String, Object> result = taskSummary(taskId, task);
+        result.putAll(TaskDetails.page(task, state.playerId, offset, 4));
+        if (rev != revision.getAsInt())
+            throw new IllegalStateException("Quest data updated during read; retry");
+        return result;
+    }
+
+    /** Small detached page for a client-thread UI. No NBT serialization, network or GUI calls. */
+    Map<String, Object> widgetSnapshot(
+            String expectedSession, int dimension, UUID questId, String section, int offset) {
+        if (offset < 0
+                || !Arrays.asList("info", "tasks", "rewards", "before", "after").contains(section))
+            throw new IllegalArgumentException("Invalid quest card page");
+        requireWidgetQuest(expectedSession, dimension, questId);
+        int rev = revision.getAsInt();
+        IQuest q = requireQuest(questId);
+        Map<String, Object> result = summary(questId, q);
+        List<DBEntry<ITask>> tasks = new ArrayList<DBEntry<ITask>>(q.getTasks().getEntries());
+        tasks.sort(
+                Comparator.comparingInt(
+                                (DBEntry<ITask> entry) ->
+                                        entry.getValue().ignored(state.playerId)
+                                                ? 2
+                                                : entry.getValue().isComplete(state.playerId)
+                                                        ? 1
+                                                        : 0)
+                        .thenComparingInt(DBEntry::getID));
+        int done = 0, ignored = 0;
+        for (DBEntry<ITask> task : tasks) {
+            if (task.getValue().ignored(state.playerId)) ignored++;
+            else if (task.getValue().isComplete(state.playerId)) done++;
+        }
+        result.put("completedTasks", done);
+        result.put("countedTasks", tasks.size() - ignored);
+        result.put("ignoredTasks", ignored);
+        result.put("taskLogic", q.getProperty(NativeProps.LOGIC_TASK).name());
+        result.put("questLogic", q.getProperty(NativeProps.LOGIC_QUEST).name());
+        result.put("repeatTimeTicks", q.getProperty(NativeProps.REPEAT_TIME));
+        result.put("lockedProgress", q.getProperty(NativeProps.LOCKED_PROGRESS));
+        result.put("simultaneous", q.getProperty(NativeProps.SIMULTANEOUS));
+        result.put("global", q.getProperty(NativeProps.GLOBAL));
+        result.put("globalShare", q.getProperty(NativeProps.GLOBAL_SHARE));
+        result.put("autoClaim", q.getProperty(NativeProps.AUTO_CLAIM));
+        result.put("prerequisiteCount", q.getRequirements().size());
+        int completedPrerequisites = 0, examined = 0;
+        for (UUID required : q.getRequirements()) {
+            if (examined++ >= 128) break;
+            IQuest prerequisite = quests.get().get(required);
+            if (prerequisite != null && prerequisite.isComplete(state.playerId))
+                completedPrerequisites++;
+        }
+        result.put(
+                "completedPrerequisites",
+                q.getRequirements().size() <= 128 ? completedPrerequisites : null);
+        BigItemStack icon = q.getProperty(NativeProps.ICON);
+        if (icon != null)
+            result.put(
+                    "icon",
+                    ((List<?>)
+                                    items(Collections.singletonList(icon), map("limit", 1))
+                                            .get("entries"))
+                            .get(0));
+        result.put("revision", rev);
+        Map<String, Object> args = map("offset", offset, "limit", 4);
+        List<Object> rows = new ArrayList<Object>();
+        if (section.equals("info")) {
+            String text = plain(QuestTranslation.translateQuestDescription(questId, q));
+            result.put("description", clip(text, 8192));
+            result.put("descriptionTruncated", text.length() > 8192);
+        } else if (section.equals("tasks")) {
+            int end = end(args, tasks.size());
+            for (int i = Math.min(offset, tasks.size()); i < end; i++) {
+                ITask task = tasks.get(i).getValue();
+                Map<String, Object> row = taskSummary(tasks.get(i).getID(), task);
+                row.putAll(TaskDetails.page(task, state.playerId, 0, 1));
+                rows.add(row);
+            }
+            result.putAll(page("entries", rows, end, tasks.size()));
+        } else if (section.equals("rewards")) {
+            List<DBEntry<IReward>> rewards =
+                    new ArrayList<DBEntry<IReward>>(q.getRewards().getEntries());
+            Collections.sort(rewards);
+            int end = end(args, rewards.size());
+            for (int i = Math.min(offset, rewards.size()); i < end; i++) {
+                IReward reward = rewards.get(i).getValue();
+                Map<String, Object> row = rewardSummary(rewards.get(i).getID(), reward);
+                row.put("choice", reward instanceof RewardChoice);
+                if (reward instanceof IRewardItemOutput)
+                    row.put(
+                            "items",
+                            items(((IRewardItemOutput) reward).getItemOutputs(), map("limit", 3)));
+                rows.add(row);
+            }
+            result.putAll(page("entries", rows, end, rewards.size()));
+        } else {
+            args.put("questId", questId.toString());
+            args.put("direction", section.equals("before") ? "prerequisites" : "dependents");
+            Map<String, Object> related = relations(args);
+            result.put("entries", related.get("relations"));
+            result.put("nextOffset", related.get("nextOffset"));
+            result.put("totalCandidates", related.get("totalCandidates"));
+        }
+        if (rev != revision.getAsInt())
+            throw new IllegalStateException("Quest data updated during read; retry");
+        return result;
     }
 
     private Map<String, Object> listLines(Map<String, Object> args) {

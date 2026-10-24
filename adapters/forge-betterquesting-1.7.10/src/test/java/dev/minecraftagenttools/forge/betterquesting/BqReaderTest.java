@@ -225,6 +225,146 @@ public class BqReaderTest {
     }
 
     @Test
+    public void widgetPagesCacheBrieflyButInvalidationAndScopeChecksStayImmediate() {
+        IQuest quest = add(1, "First", EnumQuestState.UNLOCKED);
+        AtomicLong clock = new AtomicLong();
+        BqClient client =
+                new BqClient(
+                        reader,
+                        id -> {
+                            fail("No GUI from snapshot");
+                        },
+                        clock::get);
+        String session = (String) scope().get("session");
+        assertEquals("First", client.snapshot(session, 0, id(1), "info", 0).get("name"));
+        when(quest.getProperty(NativeProps.NAME)).thenReturn("Changed");
+        assertEquals("First", client.snapshot(session, 0, id(1), "info", 0).get("name"));
+        clock.set(java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(251));
+        assertEquals("Changed", client.snapshot(session, 0, id(1), "info", 0).get("name"));
+        when(quest.getProperty(NativeProps.NAME)).thenReturn("Synced");
+        revision.incrementAndGet();
+        assertEquals("Synced", client.snapshot(session, 0, id(1), "info", 0).get("name"));
+        quests.clear();
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> client.snapshot(session, 0, id(1), "info", 0));
+        add(1, "Other world", EnumQuestState.UNLOCKED);
+        state.set(new BqReader.ClientState(new Object(), 0, player, user, null));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> client.snapshot(session, 0, id(1), "info", 0));
+    }
+
+    @Test
+    public void widgetReadsSmallPagesWithoutSerializingQuestOrIssuingActions() {
+        IQuest q = add(1, "Widget quest", EnumQuestState.UNLOCKED);
+        ITask done = mock(ITask.class), ignored = mock(ITask.class);
+        when(done.getFactoryID()).thenReturn(new ResourceLocation("test", "done"));
+        when(ignored.getFactoryID()).thenReturn(new ResourceLocation("test", "ignored"));
+        when(done.isComplete(user)).thenReturn(true);
+        when(ignored.ignored(user)).thenReturn(true);
+        when(q.getTasks().getEntries())
+                .thenReturn(
+                        Arrays.asList(new DBEntry<ITask>(8, ignored), new DBEntry<ITask>(2, done)));
+        Map<String, Object> scope = scope();
+        String session = (String) scope.get("session");
+        Map<String, Object> snapshot = reader.widgetSnapshot(session, 0, id(1), "tasks", 0);
+        assertEquals(1, snapshot.get("completedTasks"));
+        assertEquals(1, snapshot.get("countedTasks"));
+        assertEquals(1, snapshot.get("ignoredTasks"));
+        assertEquals(2, ((Map<?, ?>) ((List<?>) snapshot.get("entries")).get(0)).get("taskId"));
+        verify(q, never()).writeToNBT(any());
+        verify(q, never()).writeProgressToNBT(any(), any());
+        verify(q, never()).detect(any());
+        verify(q, never()).claimReward(any(), anyBoolean());
+    }
+
+    @Test
+    public void widgetKeepsNativeIconAndTaskDetailsBoundToTheOriginalScope() {
+        IQuest quest = add(1, "Quest icon", EnumQuestState.UNLOCKED);
+        betterquesting.api.utils.BigItemStack icon =
+                mock(betterquesting.api.utils.BigItemStack.class);
+        when(quest.getProperty(NativeProps.ICON)).thenReturn(icon);
+        ITask task = mock(ITask.class);
+        when(task.getFactoryID()).thenReturn(new ResourceLocation("test", "custom"));
+        when(quest.getTasks().getValue(7)).thenReturn(task);
+        String session = (String) scope().get("session");
+        assertSame(icon, reader.widgetIcon(session, 0, id(1)));
+        Map<String, Object> details = reader.widgetTask(session, 0, id(1), 7, 0);
+        assertEquals(7, details.get("taskId"));
+        assertEquals("Custom condition", details.get("action"));
+        assertThrows(
+                IllegalArgumentException.class, () -> reader.widgetTask(session, 0, id(1), 8, 0));
+        state.set(new BqReader.ClientState(new Object(), 0, player, user, null));
+        assertThrows(IllegalArgumentException.class, () -> reader.widgetIcon(session, 0, id(1)));
+        assertThrows(
+                IllegalArgumentException.class, () -> reader.widgetTask(session, 0, id(1), 7, 0));
+        verify(task, never()).detect(any(), any());
+        verify(task, never()).writeToNBT(any());
+        verify(quest, never()).claimReward(any(), anyBoolean());
+    }
+
+    @Test
+    public void nativeIconUsesTheBooksExactStackAndOreTextureWithoutSerializingNbt() {
+        IQuest quest = add(1, "Native quest icon", EnumQuestState.UNLOCKED);
+        betterquesting.api.utils.BigItemStack icon =
+                mock(betterquesting.api.utils.BigItemStack.class);
+        when(quest.getProperty(NativeProps.ICON)).thenReturn(icon);
+        String session = (String) scope().get("session");
+        BqClient client = new BqClient(reader, id -> fail("Drawing cannot open book"));
+        try (org.mockito.MockedConstruction<
+                        betterquesting.api2.client.gui.resources.textures.OreDictTexture>
+                textures =
+                        mockConstruction(
+                                betterquesting.api2.client.gui.resources.textures.OreDictTexture
+                                        .class,
+                                (texture, context) -> {
+                                    assertSame(icon, context.arguments().get(1));
+                                    assertEquals(false, context.arguments().get(2));
+                                    assertEquals(true, context.arguments().get(3));
+                                })) {
+            assertTrue(client.drawQuestIcon(session, 0, id(1), 10, 20, 28));
+            assertTrue(client.drawQuestIcon(session, 0, id(1), 10, 20, 28));
+            assertEquals(1, textures.constructed().size());
+            verify(textures.constructed().get(0), times(2)).drawTexture(10, 20, 28, 28, 0, 0);
+            state.set(new BqReader.ClientState(new Object(), 0, player, user, null));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> client.drawQuestIcon(session, 0, id(1), 10, 20, 28));
+            assertEquals(1, textures.constructed().size());
+        }
+        verify(quest, never()).writeToNBT(any());
+        verify(quest, never()).claimReward(any(), anyBoolean());
+    }
+
+    @Test
+    public void explicitBookOpenRechecksWorldPlayerDimensionAndMissingQuest() {
+        add(1, "Quest", EnumQuestState.UNLOCKED);
+        List<UUID> opened = new ArrayList<UUID>();
+        BqClient client = new BqClient(reader, opened::add);
+        String session = (String) scope().get("session");
+        client.snapshot(session, 0, id(1), "info", 0);
+        assertTrue(opened.isEmpty());
+        client.openQuest(session, 0, id(1));
+        assertEquals(Collections.singletonList(id(1)), opened);
+        quests.clear();
+        assertThrows(IllegalArgumentException.class, () -> client.openQuest(session, 0, id(1)));
+        add(1, "Same ID in another world", EnumQuestState.UNLOCKED);
+        state.set(new BqReader.ClientState(new Object(), 0, player, user, null));
+        assertThrows(IllegalArgumentException.class, () -> client.openQuest(session, 0, id(1)));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> client.snapshot(session, 0, id(1), "info", 0));
+        String current = (String) scope().get("session");
+        assertThrows(IllegalArgumentException.class, () -> client.openQuest(current, -1, id(1)));
+        BqReader.ClientState previousState = state.get();
+        state.set(
+                new BqReader.ClientState(previousState.world, 0, player, UUID.randomUUID(), null));
+        assertThrows(IllegalArgumentException.class, () -> client.openQuest(current, 0, id(1)));
+        assertEquals(1, opened.size());
+    }
+
+    @Test
     public void chaptersKeepBookOrderAndReturnQuestCoordinates() {
         add(1, "Start", EnumQuestState.UNLOCKED);
         IQuestLine first = mock(IQuestLine.class), second = mock(IQuestLine.class);

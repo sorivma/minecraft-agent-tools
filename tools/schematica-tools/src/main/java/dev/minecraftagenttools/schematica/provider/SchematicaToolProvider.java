@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 
-/** External-process plugin; never loads Minecraft, Schematica or Harness classes. */
+/** Host-independent plugin; never imports Minecraft, Schematica or Harness classes. */
 public final class SchematicaToolProvider implements ToolProvider {
     public String id() {
         return "schematica";
