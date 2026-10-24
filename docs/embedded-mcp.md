@@ -15,7 +15,10 @@ launcher remains an optional alternative for external installations.
    These are provider files, not Forge mods; do not put them in `mods/`.
 5. Start Minecraft. The host creates `config/minecraftagenttoolsmcp.cfg` with
    `http.port` (default `25581`), a private `http.token`, and `http.plugins`.
-6. Configure the MCP client with the URL and token below, then reconnect it.
+6. With a discovery-capable Minecraft Harness installed, open a local world:
+   Harness creates its `.codex/config.toml` automatically. Update both mods when
+   upgrading from versions without discovery. For other clients, configure the
+   URL and token below, then reconnect.
 
 Codex `config.toml`:
 
@@ -40,6 +43,20 @@ does not depend on Harness; widgets remain separate optional integration JARs.
 The endpoint is available while Minecraft runs. Game reads still require an active
 world and each adapter's fresh session/dimension. Closing a world invalidates game
 scopes without rebinding old commands or cards to the next world.
+
+## Client configuration discovery
+
+The host implements the data-only [Forge IMC discovery v1 contract](mcp-discovery.md).
+Any mod can request its connection settings; no Harness dependency is required.
+Requests use `agent-mcp:discover/v1` during initialization. The host remembers
+requesters during `IMCEvent`, then replies with `agent-mcp:server/v1` runtime
+messages after the HTTP endpoint has successfully started in post-init. Clients
+collect replies at load-complete, independent of mod ordering.
+
+The advertisement contains the actual bound port, HTTP Bearer authorization and
+timeouts for the single host endpoint. Game-bridge credentials and provider
+implementations are not exported. Provider JARs continue to use `mcp-api`; they
+need no separate client-configuration entry.
 
 ## Runtime boundaries
 

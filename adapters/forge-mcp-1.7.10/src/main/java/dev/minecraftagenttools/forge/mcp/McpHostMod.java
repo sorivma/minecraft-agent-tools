@@ -4,6 +4,7 @@ import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.*;
 import dev.minecraftagenttools.mcp.bridge.BridgeConnections;
 import dev.minecraftagenttools.mcp.http.HttpEndpoint;
+import dev.minecraftagenttools.mcp.http.McpDiscovery;
 import dev.minecraftagenttools.mcp.plugins.PluginLoader;
 import dev.minecraftagenttools.mcp.rpc.RpcServer;
 import java.io.*;
@@ -23,6 +24,15 @@ public final class McpHostMod {
     private String token;
     private PluginLoader plugins;
     private HttpEndpoint endpoint;
+    private final Set<String> discoveryClients = new LinkedHashSet<String>();
+
+    @Mod.EventHandler
+    public void discover(FMLInterModComms.IMCEvent event) {
+        for (FMLInterModComms.IMCMessage message : event.getMessages()) {
+            if (McpDiscovery.DISCOVER.equals(message.key) && message.isStringMessage())
+                discoveryClients.add(message.getSender());
+        }
+    }
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) throws IOException {
@@ -62,6 +72,14 @@ public final class McpHostMod {
             throw e;
         }
         Runtime.getRuntime().addShutdownHook(new Thread(this::close, "mat-mcp-shutdown"));
+        // IMC requests arrive before post-init. Advertise only after the endpoint has bound.
+        for (String client : discoveryClients)
+            FMLInterModComms.sendRuntimeMessage(
+                    this,
+                    client,
+                    McpDiscovery.SERVER,
+                    McpDiscovery.advertisement(endpoint.port(), token));
+        discoveryClients.clear();
     }
 
     private Map<String, String> bridgeEnvironment() {

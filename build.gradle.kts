@@ -72,6 +72,7 @@ val bundle by
         from("LICENSE", "THIRD_PARTY_NOTICES.md")
         from("docs/getting-started.md") { rename { "GETTING_STARTED.md" } }
         from("docs/embedded-mcp.md")
+        from("docs/mcp-discovery.md")
         from("licenses") { into("licenses") }
         from(
             project(":forge-mcp-1.7.10")

@@ -102,8 +102,11 @@ Set `JAVA_HOME` to a **JDK 21** before building. No neighboring checkout is requ
 1. Find the assembled distribution in `build/bundle/`.
 2. Install the MCP host and Minecraft adapter JARs from `forge/` into `mods/`.
    Copy desired providers to `config/minecraftagenttools/plugins/`.
-3. Start Minecraft yourself; read `http.token` from `config/minecraftagenttoolsmcp.cfg`.
-4. Connect the client to `http://127.0.0.1:25581/mcp` with that Bearer token.
+3. Start Minecraft yourself. With a discovery-capable Minecraft Harness installed,
+   opening a local world generates its Codex MCP configuration automatically through
+   the [common Forge IMC contract](docs/mcp-discovery.md), without a Harness dependency.
+4. For other clients, read `http.token` from `config/minecraftagenttoolsmcp.cfg`
+   and connect to `http://127.0.0.1:25581/mcp` with that Bearer token.
    See the [embedded MCP configuration](docs/embedded-mcp.md).
 5. Reconnect the MCP client and ask it to call `list_sessions`, then `observe`
    using the returned session, dimension and player UUID.
