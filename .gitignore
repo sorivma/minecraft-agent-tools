@@ -5,6 +5,7 @@
 *.iml
 .tools/
 .codex/
+/AGENTS.md
 .vscode/
 *.jks
 *.keystore
