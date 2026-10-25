@@ -41,7 +41,7 @@ jobs:
         run: ./gradlew --no-daemon --console=plain build :mcp-server:installDist
       - name: Upload test reports
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: test-reports-${{ matrix.os }}
           path: |
@@ -76,7 +76,7 @@ jobs:
           HARNESS_API: ${{ steps.harness.outputs.jar }}
         run: ./gradlew --no-daemon --console=plain "-PharnessApiJar=$HARNESS_API" releaseChecksums
       - name: Upload complete release candidate
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-candidate
           path: build/release/
@@ -84,7 +84,7 @@ jobs:
           retention-days: 14
       - name: Upload integration test reports
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: integration-test-reports
           path: integrations/*/*/build/reports/tests/
