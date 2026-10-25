@@ -17,7 +17,7 @@ import net.minecraftforge.common.config.Configuration;
 @Mod(
         modid = "minecraftagenttoolsbetterquesting",
         name = "Minecraft Agent Tools BetterQuesting",
-        version = "0.1.0-SNAPSHOT",
+        version = dev.minecraftagenttools.protocol.BuildVersion.VERSION,
         acceptableRemoteVersions = "*",
         dependencies = "required-after:betterquesting@[3.8.89,)")
 public final class BetterQuestingMod {

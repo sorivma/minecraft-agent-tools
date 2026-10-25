@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Fixed dummy token used only by the local HTTP endpoint unit tests"
+condition = "AND"
+paths = ['''core/mcp-runtime/src/test/java/dev/minecraftagenttools/mcp/http/HttpEndpointTest\.java$''']
+regexTarget = "secret"
+regexes = ['''^0123456789abcdef0123456789abcdef$''']

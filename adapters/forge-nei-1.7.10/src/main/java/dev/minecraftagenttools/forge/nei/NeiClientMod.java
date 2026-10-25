@@ -13,7 +13,7 @@ import net.minecraftforge.common.config.Configuration;
 @Mod(
         modid = "minecraftagenttoolsnei",
         name = "Minecraft Agent Tools NEI",
-        version = "0.1.0-SNAPSHOT",
+        version = dev.minecraftagenttools.protocol.BuildVersion.VERSION,
         acceptableRemoteVersions = "*",
         dependencies = "required-after:NotEnoughItems@[2.6.44,)")
 public final class NeiClientMod {

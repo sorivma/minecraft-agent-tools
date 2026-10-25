@@ -15,7 +15,7 @@ import net.minecraftforge.common.config.Configuration;
 @Mod(
         modid = "minecraftagenttoolsschematica",
         name = "Minecraft Agent Tools Schematica",
-        version = "0.1.0-SNAPSHOT",
+        version = dev.minecraftagenttools.protocol.BuildVersion.VERSION,
         acceptableRemoteVersions = "*",
         dependencies = "required-after:Schematica")
 public final class SchematicaMod {

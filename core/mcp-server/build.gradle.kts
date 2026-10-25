@@ -33,7 +33,7 @@ tasks.jar {
     archiveBaseName.set("minecraft-agent-tools-core")
     manifest { attributes["Main-Class"] = application.mainClass.get() }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+    from({ configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) } })
     from(rootProject.file("THIRD_PARTY_NOTICES.md")) { into("META-INF") }
     from(rootProject.file("licenses")) { into("META-INF/licenses") }
 }

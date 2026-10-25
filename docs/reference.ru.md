@@ -134,9 +134,9 @@ Gradle Wrapper 8.8 запускается на JDK 21 (`JAVA_HOME`), адапт�
 - Готовый набор: `build/bundle/core.jar`, `build/bundle/plugins/minecraft-tools.jar`
   и серверный мод в `build/bundle/forge/`. Этот набор собирается также командой `gradlew.bat bundle`.
 - Самостоятельное ядро со всеми своими зависимостями:
-  `core/mcp-server/build/libs/minecraft-agent-tools-core-0.1.0-SNAPSHOT.jar`.
-- Отдельный провайдер: `tools/minecraft-tools/build/libs/minecraft-tools-0.1.0-SNAPSHOT.jar`.
-- Мод: `adapters/forge-1.7.10/build/libs/minecraft-agent-tools-forge-1.7.10-0.1.0-SNAPSHOT.jar`.
+  `core/mcp-server/build/libs/minecraft-agent-tools-core-0.1.0.jar`.
+- Отдельный провайдер: `tools/minecraft-tools/build/libs/minecraft-tools-0.1.0.jar`.
+- Мод: `adapters/forge-1.7.10/build/libs/minecraft-agent-tools-forge-1.7.10-0.1.0.jar`.
 - MCP-дистрибутив: `core/mcp-server/build/install/mcp-server/`, включая `bin`, `lib` и `plugins`.
 - Отчёты тестов: `core/bridge-protocol/build/reports/tests/test/index.html`,
   `tools/minecraft-tools/build/reports/tests/test/index.html`,
@@ -152,7 +152,7 @@ build/bundle/
   plugins/
     minecraft-tools.jar
   forge/
-    minecraft-agent-tools-forge-1.7.10-0.1.0-SNAPSHOT.jar
+    minecraft-agent-tools-forge-1.7.10-0.1.0.jar
 ```
 
 MCP-клиент запускает `java -jar C:/path/to/bundle/core.jar`. Ядро автоматически ищет
@@ -435,7 +435,7 @@ NEI подключается независимо от серверных наб
 `агент → core.jar → plugins/nei-tools.jar → TCP loopback → клиентский мод → обработчики NEI`
 
 1. Собрать `gradlew.bat build :mcp-server:installDist`.
-2. Взять `build/bundle/client-mods/minecraft-agent-tools-nei-forge-1.7.10-0.1.0-SNAPSHOT.jar`
+2. Взять `build/bundle/client-mods/minecraft-agent-tools-nei-forge-1.7.10-0.1.0.jar`
    и положить в `mods` **клиента** Minecraft 1.7.10 с установленным NEI GTNH.
    В `mods` выделенного сервера этот адаптер не устанавливается.
 3. После запуска клиента взять `bridge.token` и `bridge.port` из

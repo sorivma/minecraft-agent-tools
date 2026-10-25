@@ -11,7 +11,7 @@ import net.minecraftforge.common.config.Configuration;
 @Mod(
         modid = "minecraftagenttools",
         name = "Minecraft Agent Tools",
-        version = "0.1.0-SNAPSHOT",
+        version = dev.minecraftagenttools.protocol.BuildVersion.VERSION,
         acceptableRemoteVersions = "*")
 public final class MinecraftAgentToolsMod {
     private int port;

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Installation and architecture
+    url: https://github.com/sorivma/minecraft-agent-tools/blob/main/docs/getting-started.md
+    about: Check the installation guide before opening an issue.
+  - name: Report a security vulnerability privately
+    url: https://github.com/sorivma/minecraft-agent-tools/security/advisories/new
+    about: Never include credentials or exploit details in public issues.

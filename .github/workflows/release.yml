@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  version:
+    name: Verify release version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - name: Require a SemVer tag matching the source
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, re
+          tag = os.environ['RELEASE_TAG']
+          version = re.search(r'^version=(.+)$', pathlib.Path('gradle.properties').read_text(), re.M).group(1).strip()
+          assert re.fullmatch(r'v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-(?:alpha|beta|rc)\.[1-9][0-9]*)?', tag), 'Invalid release tag'
+          assert tag == 'v' + version, 'Tag and Gradle version differ'
+          assert pathlib.Path(f'docs/releases/{version}.md').is_file(), 'Missing release notes'
+          PY
+  verify:
+    name: Verify and package
+    needs: version
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+  publish:
+    name: Publish verified release
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release-candidate
+          path: release
+      - name: Verify artifact checksums
+        working-directory: release
+        run: sha256sum --check SHA256SUMS
+      - name: Attest the release artifacts
+        if: github.event.repository.visibility == 'public'
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: release/*
+      - name: Publish all artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          prerelease=()
+          if [[ "$RELEASE_TAG" == *-* ]]; then prerelease=(--prerelease); fi
+          if gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft > existing-draft.txt 2>/dev/null; then
+            test "$(cat existing-draft.txt)" = true || { echo "A published release must never be replaced" >&2; exit 1; }
+            gh release upload "$RELEASE_TAG" release/* --clobber
+            gh release edit "$RELEASE_TAG" --title "Minecraft Agent Tools $RELEASE_TAG" --notes-file release/RELEASE_NOTES.md
+          else
+            gh release create "$RELEASE_TAG" --verify-tag --draft --title "Minecraft Agent Tools $RELEASE_TAG" --notes-file release/RELEASE_NOTES.md "${prerelease[@]}" release/*
+          fi
+          gh release edit "$RELEASE_TAG" --draft=false

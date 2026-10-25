@@ -8,7 +8,8 @@
 Изучай мир. Разбирайся в рецептах. Планируй будущие постройки.</p>
 
 <p align="center">
-  <a href=".github/workflows/ci.yml"><img src="https://img.shields.io/badge/CI-Linux%20%7C%20Windows-8AAE5D?style=flat-square" alt="CI настроен для Linux и Windows"></a>
+  <a href="https://github.com/sorivma/minecraft-agent-tools/actions/workflows/ci.yml"><img src="https://github.com/sorivma/minecraft-agent-tools/actions/workflows/ci.yml/badge.svg" alt="Результат сборки"></a>
+  <a href="https://github.com/sorivma/minecraft-agent-tools/releases"><img src="https://img.shields.io/github/v/release/sorivma/minecraft-agent-tools?style=flat-square&amp;color=8AAE5D" alt="Последний релиз"></a>
   <img src="https://img.shields.io/badge/Minecraft-1.7.10-62B47A?style=flat-square" alt="Minecraft 1.7.10">
   <img src="https://img.shields.io/badge/Java-8%20%2B%2021-E7AB59?style=flat-square" alt="Java 8 и 21">
   <img src="https://img.shields.io/badge/transport-MCP%20HTTP-65CFD5?style=flat-square" alt="MCP через HTTP внутри Minecraft">
@@ -88,6 +89,15 @@ Minecraft владеет MCP-сервером и его жизненным ци�
 
 ## Быстрый старт
 
+**Готовая сборка:** скачай `minecraft-agent-tools-<версия>-bundle.zip` из
+[Releases](https://github.com/sorivma/minecraft-agent-tools/releases/latest), проверь
+контрольную сумму по `SHA256SUMS` и распакуй архив. Затем переходи к шагу 2 ниже.
+Для Forge-модов достаточно Java 8; JDK 21 нужен для сборки исходников и внешнего
+stdio launcher. Файлы API, `-dev` и `-sources` предназначены разработчикам;
+их не нужно устанавливать в `mods/`.
+
+**Сборка из исходников:**
+
 Нужны **JDK 21** для Gradle и Forge 1.7.10 для игры.
 Адаптеры собираются Java 8 toolchain. Первая сборка скачивает зависимости
 и инструменты старого Forge, поэтому ей нужен доступ в интернет.
@@ -147,3 +157,16 @@ Workflow GitHub выполняет эту сборку в Linux и Windows. Эт
 Автор — [sorivma](https://github.com/sorivma). Лицензия — [MIT](LICENSE);
 для зависимостей действуют [собственные условия](THIRD_PARTY_NOTICES.md).
 Независимый проект, не связан с Mojang или Microsoft.
+
+## Репозитории проекта
+
+| Проект | Назначение |
+| --- | --- |
+| **Minecraft Agent Tools** | Локальный MCP, наблюдения за миром и интеграции с модами |
+| [Minecraft Harness](https://github.com/sorivma/minecraft-harness) | Диалоги с агентом и интерактивные карточки в Minecraft |
+| [Mira](https://github.com/sorivma/mira) | Доски, задачи и командные процессы внутри игры |
+
+Репозитории собираются независимо. Интеграции используют явно указанные API из
+релизов. [Политика версионирования](VERSIONING.md) и [история изменений](CHANGELOG.md)
+описывают совместимость. CI отдельно проверяет оба расширения Harness; релизы
+публикуются с контрольными суммами и подтверждением происхождения сборки.

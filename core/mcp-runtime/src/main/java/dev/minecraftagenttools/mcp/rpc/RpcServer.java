@@ -65,7 +65,11 @@ public final class RpcServer {
                                 "capabilities",
                                 map("tools", map("listChanged", false)),
                                 "serverInfo",
-                                map("name", "minecraft-agent-tools", "version", "0.1.0"),
+                                map(
+                                        "name",
+                                        "minecraft-agent-tools",
+                                        "version",
+                                        dev.minecraftagenttools.protocol.BuildVersion.VERSION),
                                 "instructions",
                                 providers.instructions());
             } else if (method.equals("ping")) result = map();

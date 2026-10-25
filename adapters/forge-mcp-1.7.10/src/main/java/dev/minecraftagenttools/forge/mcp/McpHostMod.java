@@ -16,7 +16,7 @@ import net.minecraftforge.common.config.Configuration;
 @Mod(
         modid = "minecraftagenttoolsmcp",
         name = "Minecraft Agent Tools MCP Host",
-        version = "0.1.0-SNAPSHOT",
+        version = dev.minecraftagenttools.protocol.BuildVersion.VERSION,
         acceptableRemoteVersions = "*")
 public final class McpHostMod {
     private File configDirectory, pluginDirectory;

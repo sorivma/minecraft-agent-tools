@@ -4,6 +4,7 @@
 .idea/
 *.iml
 .tools/
+.dependencies/
 .codex/
 /AGENTS.md
 .vscode/

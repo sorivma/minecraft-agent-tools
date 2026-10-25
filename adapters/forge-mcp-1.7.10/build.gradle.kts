@@ -7,7 +7,10 @@ java { toolchain { languageVersion.set(JavaLanguageVersion.of(8)) } }
 
 minecraft { mcVersion.set("1.7.10") }
 
-dependencies { implementation(project(":mcp-runtime")) }
+dependencies {
+    implementation(project(":mcp-runtime"))
+    compileOnly(project(":bridge-protocol"))
+}
 
 tasks.jar {
     from(project(":mcp-runtime").sourceSets.main.get().output)

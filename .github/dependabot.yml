@@ -3,4 +3,16 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
+    open-pull-requests-limit: 5
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      test-and-formatting:
+        patterns: ['junit:*', 'org.mockito:*', 'com.diffplug.spotless']
+    open-pull-requests-limit: 5

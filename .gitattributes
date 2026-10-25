@@ -1,7 +1,10 @@
 * text=auto eol=lf
 *.java text eol=lf
 *.kts text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
 *.md text eol=lf
+*.py text eol=lf
 gradlew text eol=lf
 *.bat text eol=crlf
 *.jar binary

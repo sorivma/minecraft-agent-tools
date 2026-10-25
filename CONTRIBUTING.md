@@ -10,6 +10,11 @@ Install a JDK 21 and set `JAVA_HOME` to it. Gradle resolves a Java 8 toolchain
 for adapters and contracts; installing JDK 8 locally also works. The first
 build downloads the legacy Forge toolchain and needs network access.
 
+The historical NEI 2.6.44-GTNH development API is fetched from its official GitHub
+release because those old Maven coordinates are unavailable. `verifyNeiBaseline`
+checks its pinned SHA-256 before compiling. It remains a compile/test dependency
+and is never embedded in the distributed adapter.
+
 ```sh
 ./gradlew build :mcp-server:installDist
 ```
@@ -32,8 +37,10 @@ dependency on a neighboring checkout.
 
 Tests live next to the corresponding module under `src/test/java`. Reports are
 written to `<module>/build/reports/tests/test/index.html`. CI covers the standalone
-build on Linux and Windows. Optional Harness changes also need a local build
-against the explicitly supplied API JAR.
+build on Linux and Windows and a separate full build with both Harness widgets.
+Use `python3 scripts/fetch-harness.py` to obtain the pinned, checksummed release API,
+then supply it with `-PharnessApiJar=.dependencies/minecraft-harness-forge-1.7.10-0.1.0-dev.jar`.
+See [Versioning](VERSIONING.md) for packaging and release instructions.
 
 ## Design boundaries
 

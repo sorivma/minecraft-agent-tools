@@ -1,0 +1,24 @@
+name: Feature request
+description: Propose a tool, compatibility improvement or developer API.
+title: '[Feature] '
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Describe the player or addon-development task and the current limitation.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Include the relevant mod/version, affected side and intended inputs/outputs.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and compatibility
+      description: Consider existing tools, thread ownership, session scope and permission boundaries.

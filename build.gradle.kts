@@ -33,13 +33,22 @@ spotless {
 
 allprojects {
     group = "dev.minecraftagenttools"
-    version = "0.1.0-SNAPSHOT"
+    version = rootProject.providers.gradleProperty("version").get()
     repositories { mavenCentral() }
 }
 
 subprojects {
+    plugins.withId("java") {
+        extensions.configure<JavaPluginExtension> { withSourcesJar() }
+        tasks.named<Jar>("sourcesJar") {
+            archiveBaseName.set(project.tasks.named<Jar>("jar").flatMap { it.archiveBaseName })
+        }
+    }
     tasks.withType<JavaCompile>().configureEach { options.encoding = "UTF-8" }
     tasks.withType<Jar>().configureEach {
+        isPreserveFileTimestamps = false
+        isReproducibleFileOrder = true
+        manifest { attributes["Implementation-Version"] = project.version.toString() }
         from(rootProject.file("LICENSE")) {
             into("META-INF")
             rename { "LICENSE-minecraft-agent-tools" }
@@ -185,3 +194,5 @@ val bundle by
 tasks.named("build") { dependsOn(bundle) }
 
 apply(from = "gradle/verification.gradle.kts")
+
+apply(from = "gradle/release.gradle.kts")

@@ -8,7 +8,7 @@ import net.minecraftforge.common.MinecraftForge;
 @Mod(
         modid = "minecraftagenttoolsschematicaharness",
         name = "Minecraft Agent Tools Schematica Widgets",
-        version = "0.1.0-SNAPSHOT",
+        version = dev.minecraftagenttools.protocol.BuildVersion.VERSION,
         acceptableRemoteVersions = "*",
         dependencies =
                 "required-after:minecraftharness;required-after:minecraftagenttoolsschematica")

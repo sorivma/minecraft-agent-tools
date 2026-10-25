@@ -8,7 +8,8 @@
 Inspect the world. Explore recipes. Plan what to build next.</p>
 
 <p align="center">
-  <a href=".github/workflows/ci.yml"><img src="https://img.shields.io/badge/CI-Linux%20%7C%20Windows-8AAE5D?style=flat-square" alt="CI configured for Linux and Windows"></a>
+  <a href="https://github.com/sorivma/minecraft-agent-tools/actions/workflows/ci.yml"><img src="https://github.com/sorivma/minecraft-agent-tools/actions/workflows/ci.yml/badge.svg" alt="Build status"></a>
+  <a href="https://github.com/sorivma/minecraft-agent-tools/releases"><img src="https://img.shields.io/github/v/release/sorivma/minecraft-agent-tools?style=flat-square&amp;color=8AAE5D" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/Minecraft-1.7.10-62B47A?style=flat-square" alt="Minecraft 1.7.10">
   <img src="https://img.shields.io/badge/Java-8%20%2B%2021-E7AB59?style=flat-square" alt="Java 8 and 21">
   <img src="https://img.shields.io/badge/transport-MCP%20HTTP-65CFD5?style=flat-square" alt="MCP over HTTP inside Minecraft">
@@ -17,7 +18,7 @@ Inspect the world. Explore recipes. Plan what to build next.</p>
 
 <p align="center">
   <strong>English</strong> · <a href="README.ru.md">Русский</a><br>
-  <a href="#quick-start">Quick start</a> · <a href="docs/architecture.md">Architecture</a> · <a href="docs/tools.md">Tool reference</a> · <a href="CONTRIBUTING.md">Contributing</a>
+  <a href="https://github.com/sorivma/minecraft-agent-tools/releases/latest">Download</a> · <a href="#quick-start">Quick start</a> · <a href="docs/architecture.md">Architecture</a> · <a href="docs/tools.md">Tool reference</a> · <a href="CONTRIBUTING.md">Contributing</a>
 </p>
 
 ---
@@ -86,6 +87,14 @@ tradeoffs and extension interface.
 
 ## Quick start
 
+**Install a release:** download `minecraft-agent-tools-<version>-bundle.zip` from
+[Releases](https://github.com/sorivma/minecraft-agent-tools/releases/latest), verify
+it against `SHA256SUMS`, extract it, then follow steps 2–5 below. The Java 8 Forge
+runtime does not require Java 21; that JDK is for source builds and the optional
+external launcher. API, `-dev` and `-sources` JARs are developer artifacts, not mods.
+
+**Build from source:**
+
 **Prerequisites:** JDK 21 to run Gradle; Forge 1.7.10 for the game.
 Gradle uses a Java 8 toolchain for the adapters. The first build needs internet
 access to download dependencies and the legacy Forge toolchain.
@@ -129,8 +138,22 @@ bundle layout, optional integrations and troubleshooting.
 
 `build` runs isolated tests, formatting checks and checks of the **actual bundle
 JARs**: class-file versions, provider registration and forbidden bundled classes.
-The GitHub workflow runs that build on Linux and Windows. These checks do not launch
-the game and do not replace runtime validation.
+The GitHub workflow runs that build on Linux and Windows, plus a separate complete
+build with both optional Harness widgets against a released API. Release tags repeat
+these checks and publish checksummed artifacts with build provenance. These checks
+do not launch the game and do not replace runtime validation.
+
+## The Minecraft Agentic projects
+
+| Project | Role |
+| --- | --- |
+| **Minecraft Agent Tools** | Local MCP endpoint, world observations and mod integrations |
+| [Minecraft Harness](https://github.com/sorivma/minecraft-harness) | Agent conversations and interactive widgets inside Minecraft |
+| [Mira](https://github.com/sorivma/mira) | In-game boards, issues and team workflows, with optional agent integrations |
+
+Each repository builds independently. Optional integrations use explicit released
+APIs. See [Versioning](VERSIONING.md), [Changelog](CHANGELOG.md) and the
+[release notes](docs/releases/0.1.0.md) for the initial compatibility set.
 
 ## Explore the project
 
@@ -142,6 +165,7 @@ the game and do not replace runtime validation.
 | Detailed parameters and limits (RU) | [Technical guide](docs/reference.ru.md) |
 | Construction plans and optional widgets (RU) | [Schematica](docs/schematica.md) |
 | Building, testing or contributing | [Contributing](CONTRIBUTING.md) |
+| First-release findings and verification | [Release review](docs/release-review.md) |
 | Tokens and trust boundaries | [Security](SECURITY.md) |
 
 Built by [sorivma](https://github.com/sorivma). Licensed under [MIT](LICENSE);

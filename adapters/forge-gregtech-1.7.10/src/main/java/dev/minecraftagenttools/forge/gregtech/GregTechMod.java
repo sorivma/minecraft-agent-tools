@@ -14,7 +14,7 @@ import net.minecraftforge.common.config.Configuration;
 @Mod(
         modid = "minecraftagenttoolsgregtech",
         name = "Minecraft Agent Tools GregTech",
-        version = "0.1.0-SNAPSHOT",
+        version = dev.minecraftagenttools.protocol.BuildVersion.VERSION,
         acceptableRemoteVersions = "*",
         dependencies = "required-after:gregtech")
 public final class GregTechMod {
