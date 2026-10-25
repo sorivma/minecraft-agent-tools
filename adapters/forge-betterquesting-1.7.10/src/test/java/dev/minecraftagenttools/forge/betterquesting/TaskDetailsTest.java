@@ -114,6 +114,27 @@ public class TaskDetailsTest {
     }
 
     @Test
+    public void extremePaginationOffsetsReturnAnEmptyFinalPageForEveryCollectionTask() {
+        TaskRetrieval items = new TaskRetrieval();
+        items.requiredItems.clear();
+        items.requiredItems.add(null);
+        TaskFluid fluids = new TaskFluid();
+        fluids.requiredFluids.clear();
+        fluids.requiredFluids.add(null);
+        TaskBlockBreak blocks = new TaskBlockBreak();
+        blocks.blockTypes.clear();
+        blocks.blockTypes.add(null);
+        for (ITask task : Arrays.asList(items, fluids, blocks)) {
+            for (int offset : new int[] {Integer.MAX_VALUE - 1, Integer.MAX_VALUE}) {
+                Map<String, Object> page = TaskDetails.page(task, user, offset, 6);
+                assertTrue(conditions(page).isEmpty());
+                assertEquals(1, page.get("totalConditions"));
+                assertNull(page.get("nextConditionOffset"));
+            }
+        }
+    }
+
+    @Test
     public void xpUsesQuestBooksRawXpThresholdAndHiddenLocationsStayHidden() {
         TaskXP xp = spy(new TaskXP());
         xp.levels = true;

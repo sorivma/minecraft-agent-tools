@@ -58,7 +58,8 @@ final class TaskDetails {
             if (!t.ignoreNbt) notes.add("Fluid NBT must match");
             int[] progress = t.getUsersProgress(user);
             total = t.requiredFluids.size();
-            for (int i = Math.min(offset, total); i < Math.min((long) offset + limit, total); i++) {
+            int end = (int) Math.min((long) offset + limit, total);
+            for (int i = Math.min(offset, total); i < end; i++) {
                 FluidStack fluid = t.requiredFluids.get(i);
                 rows.add(
                         fluid == null
@@ -121,7 +122,8 @@ final class TaskDetails {
             result.put("action", "Break blocks");
             int[] progress = t.getUsersProgress(user);
             total = t.blockTypes.size();
-            for (int i = Math.min(offset, total); i < Math.min((long) offset + limit, total); i++) {
+            int end = (int) Math.min((long) offset + limit, total);
+            for (int i = Math.min(offset, total); i < end; i++) {
                 NbtBlockType block = t.blockTypes.get(i);
                 Map<String, Object> row =
                         numeric(
@@ -220,9 +222,8 @@ final class TaskDetails {
     private static int items(
             List<Object> rows, List<BigItemStack> items, int[] progress, int offset, int limit) {
         if (items == null) return 0;
-        for (int i = Math.min(offset, items.size());
-                i < Math.min((long) offset + limit, items.size());
-                i++) {
+        int end = (int) Math.min((long) offset + limit, items.size());
+        for (int i = Math.min(offset, items.size()); i < end; i++) {
             BigItemStack item = items.get(i);
             if (item == null) {
                 rows.add(unknown("Unavailable item"));

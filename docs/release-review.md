@@ -12,6 +12,7 @@ compatibility.
 | Forge mods advertised `0.1.0-SNAPSHOT`, while MCP advertised a separately hardcoded `0.1.0`. | Use `gradle.properties` as the shared version source, generate the compile-time `BuildVersion` constant, and stamp JAR manifests. | All 44 release JAR manifests report `0.1.0`; Forge annotations and MCP server information compile from the generated constant. |
 | The external MCP fat JAR resolved its runtime classpath eagerly during task configuration. A sibling project's clean CI failure exposed the risk of trusting existing project JARs. | Defer the classpath expansion while preserving explicit build dependencies. | A full clean build passed. A further Gradle invocation started after all 44 generated module JARs were removed and rebuilt the complete release successfully. |
 | Optional Harness widgets were outside the original CI coverage, and release assets had no automated publication contract. | Add a full integration job against the pinned Harness release, explicit artifact completeness checks, SHA-256 checksums, and a version-checked release workflow. | Both widget test suites passed; packaging produced 50 release files, including 44 JARs and `SHA256SUMS`. |
+| CodeQL flagged three pagination loops for comparing an `int` index with a `long` bound. The bound was already capped by an `int` collection size, so index overflow was not possible. | Express the capped endpoint as an `int` before each loop, resolving the static-analysis ambiguity without changing behavior. | A regression test covers near-maximum and maximum integer offsets for item, fluid and block requirements; the focused BetterQuesting suite passes all 22 tests. |
 
 The NEI API remains a compile/test dependency and is not embedded in the adapter.
 Release staging selects declared task outputs so stale files in `build/libs/`
@@ -21,6 +22,8 @@ cannot accidentally become published assets.
 
 - **131 isolated tests:** zero failures, errors or skipped tests, including both
   optional Harness integrations.
+- A subsequent pagination regression brings the repository total to **132 tests**;
+  all 22 tests in the affected BetterQuesting adapter passed after that change.
 - Standalone build and external launcher installation distribution.
 - Full clean build with all integrations: 262 tasks, 254 executed.
 - Fresh Gradle configuration with all 44 module JARs absent: full release rebuilt
